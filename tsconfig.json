@@ -1,0 +1,29 @@
+{
+  "compilerOptions": {
+    "target": "ES2024",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitAny": true,
+    "declaration": true,
+    "composite": true,
+    "incremental": true,
+    "rootDir": "src",
+    "outDir": "lib/types",
+    "skipLibCheck": true,
+    "types": [
+      "node"
+    ],
+    "forceConsistentCasingInFileNames": true,
+    "allowImportingTsExtensions": true,
+    "rewriteRelativeImportExtensions": true
+  },
+  "include": [
+    "src/index.ts",
+    "src/invariant.ts",
+    "src/git/**/*.ts",
+    "src/worktree/**/*.ts",
+    "src/css-modules.d.ts"
+  ]
+}

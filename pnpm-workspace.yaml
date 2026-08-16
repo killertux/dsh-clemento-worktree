@@ -1,0 +1,5 @@
+# pnpm 10+ blocks dependency build scripts unless listed here.
+allowBuilds:
+  node-pty: true
+  '@deepseek-ai/dsh-subprocess-local': true
+  koffi: true

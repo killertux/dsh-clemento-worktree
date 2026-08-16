@@ -1,0 +1,10 @@
+# dependencies
+node_modules/
+
+# build intermediates (lib/ is committed: the loader serves it at install time)
+*.tsbuildinfo
+coverage/
+dist/
+
+# logs
+*.log

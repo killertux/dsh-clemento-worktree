@@ -1,0 +1,13 @@
+.badge {
+  align-self: center;
+  max-width: 12rem;
+  overflow: hidden;
+  padding: 0.1rem 0.45rem;
+  border: 1px solid var(--dsw-alias-border-l);
+  border-radius: 0.4rem;
+  color: var(--dsw-alias-label-tertiary);
+  font-size: 0.75rem;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

@@ -1,0 +1,9 @@
+# dsh bundle layer: mount the git-worktree subdivision plugin.
+#
+# One entry: the package root is a function plugin that mounts the git seam
+# (ctx.worktreeGit) and the worktree registry (ctx.worktreeRegistry, a typert
+# remote). The dsh.client manifest in package.json registers the browser half
+# (the worktree badge + new-session-in-worktree flow).
+- insert:
+    - id: worktree
+      name: '@killertux/dsk-clemento-worktree'
