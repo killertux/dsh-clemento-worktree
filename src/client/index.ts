@@ -8,8 +8,7 @@
  */
 import type {} from '@deepseek-ai/dsh-api-remotes/client'
 import type {} from '@deepseek-ai/dsh-client-locale/client'
-import type { ConnectionHandle } from '@deepseek-ai/dsh-client-connection/client'
-import type { ClientContext, ISessions, SessionId, WorkspaceId } from '@deepseek-ai/dsh-client-runtime/client'
+import type { ClientContext, ISessions, SessionId, SessionRuntime, WorkspaceId } from '@deepseek-ai/dsh-client-runtime/client'
 import { createSnapshotStore } from '@deepseek-ai/dsh-client-runtime/client'
 import type { TypertRemoteNamespaceMap } from '@deepseek-ai/dsh-typert-protocol'
 import worktreeRemote from '@killertux/dsh-clemento-worktree/remote'
@@ -22,8 +21,6 @@ import { WorktreeComposerButton } from './WorktreeChooserDialog.tsx'
 export type { WorktreeInjected, WorktreeOverlayActionProps, WorktreeBadgeProps } from './contract/slots.ts'
 
 const NS = 'worktree'
-/** How long the new-session flow waits for the created session to land in the list. */
-const SESSION_ARRIVAL_TIMEOUT_MS = 3_000
 
 /** Required services (cordis fiber inject). */
 export const inject = ['slots', 'sessions', 'workspaces', 'connection', 'remote', 'locale']
@@ -62,15 +59,6 @@ export async function apply(ctx: ClientContext): Promise<() => Promise<void>> {
   const worktreeRegistry = (): TypertRemoteNamespaceMap['worktreeRegistry'] =>
     ctx.get('remote.worktreeRegistry') as TypertRemoteNamespaceMap['worktreeRegistry']
 
-  /** Wait until the freshly created session summary lands (host frame merge). */
-  const waitForSession = async (sessionId: SessionId): Promise<void> => {
-    const deadline = Date.now() + SESSION_ARRIVAL_TIMEOUT_MS
-    while (Date.now() < deadline) {
-      if (sessions.list.getSnapshot().byId[sessionId] !== undefined) return
-      await new Promise(resolve => setTimeout(resolve, 25))
-    }
-  }
-
   const injected = (): WorktreeInjected => ({
     hooks: { worktrees },
     worktreeOf: async sessionId =>
@@ -85,12 +73,22 @@ export async function apply(ctx: ClientContext): Promise<() => Promise<void>> {
       worktrees.set([...(worktrees.getSnapshot() ?? []), created])
       return created
     },
-    startSessionIn: async worktreePath => {
-      const connection = ctx.get('connection') as ConnectionHandle
-      const { result } = await connection.api.sessions.create({ cwd: worktreePath })
-      if (!result.ok) throw new Error(result.error.message)
-      await waitForSession(result.value.sessionId)
-      sessions.open(result.value.sessionId)
+    selectWorktree: async worktreePath => {
+      // Reuse an existing blank session in this worktree (the connectWorkspace
+      // reuse scan), else create one through the runtime's own create path —
+      // the same manager the workspace flow uses, which lands the id in the
+      // list store before resolving.
+      const list = sessions.list.getSnapshot()
+      for (const id of list.ids) {
+        const summary = list.byId[id]
+        if (summary !== undefined && summary.blank && summary.cwd === worktreePath) {
+          sessions.open(summary.id)
+          return
+        }
+      }
+      const sessionRuntime = ctx.get('sessions') as unknown as SessionRuntime
+      const sessionId = await sessionRuntime.create({ cwd: worktreePath })
+      sessions.open(sessionId)
     },
   })
 

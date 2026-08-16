@@ -48,7 +48,7 @@ folder (the harness source lives in a sibling dev clone,
     reaction via `domain/changed`. Remotes: `list`, `create`, `delete`,
     `discover`, `resolve`, `bySession` (package-owned request/result wrapper
     types — the typert boundary rule).
-  - `client/` — badge + new-session-in-worktree chooser; session creation via
+  - `client/` — badge + worktree selector chooser; session creation via
     `ctx.get('connection').api.sessions.create({ cwd })` then
     `ctx.sessions.open`.
   - `index.ts` (root plugin), `invariant.ts`.

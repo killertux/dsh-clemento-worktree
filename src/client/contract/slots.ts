@@ -40,8 +40,12 @@ export type WorktreeInjected = {
   listWorktrees(workspaceId: WorkspaceId): Promise<WorktreeView[]>
   /** Create a linked worktree on a NEW branch (git add + durable record). */
   createWorktree(workspaceId: WorkspaceId, branch: string): Promise<WorktreeView>
-  /** Create a session in a worktree directory and open it. */
-  startSessionIn(worktreePath: string): Promise<void>
+  /**
+   * Apply a worktree choice: reuse-or-create the blank session whose cwd is
+   * the worktree path and open it, so the first message starts the session
+   * in that worktree.
+   */
+  selectWorktree(worktreePath: string): Promise<void>
 }
 
 /** Props of the floating worktree-setup trigger + its chooser dialog. */

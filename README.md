@@ -1,11 +1,11 @@
 # dsh-clemento-worktree
 
-Git worktree subdivision for [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness): a **per-worktree session badge** and a **new-session-in-worktree flow**. Installs as an external plugin bundle — no core harness changes.
+Git worktree subdivision for [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness): a **per-worktree session badge** and a **worktree selector flow**. Installs as an external plugin bundle — no core harness changes.
 
 For a git workspace, this plugin:
 
 - **Badge** — shows the git worktree (branch) the current session runs in, in the session header.
-- **New session in worktree…** — a header button opening a chooser: pick a workspace, then either pick an existing worktree (the main worktree included) or enter a new branch name. The new session runs with the worktree as its working directory (`session.create { cwd }` on the existing wire); the plugin adopts it by `cwd` via `session/created`.
+- **Select worktree…** — a header button opening a chooser: pick a workspace, then either pick an existing worktree (the main worktree included) or enter a new branch name. The new session runs with the worktree as its working directory (`session.create { cwd }` on the existing wire); the plugin adopts it by `cwd` via `session/created`.
 - **Auto-discovery** — a workspace that is a git repo gets its main worktree minted and every linked worktree discovered from `git worktree list` (also for workspaces registered after boot, via `domain/changed`).
 
 Non-git workspaces are untouched: no worktree records, no badge, sessions behave exactly as before.
