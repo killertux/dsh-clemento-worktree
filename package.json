@@ -87,7 +87,8 @@
     "@deepseek-ai/dsh-subprocess": "^0.1.0-rc.6",
     "@deepseek-ai/dsh-typert-protocol": "^0.1.0-rc.6",
     "@deepseek-ai/dsh-workspace": "^0.1.0-rc.6",
-    "react": "^18.2.0"
+    "react": "^18.2.0",
+    "@deepseek-ai/dsh-client-ui-sidebar": "^0.1.0-rc.6"
   },
   "dependencies": {
     "clsx": "^2.0.0",
@@ -125,6 +126,7 @@
     "@deepseek-ai/cordis-plugin-loader": "^1.0.0",
     "@deepseek-ai/cordis-plugin-include": "^1.0.0",
     "@deepseek-ai/dsh-storage-json": "^0.1.0-rc.6",
-    "@deepseek-ai/dsh-session-persistence-jsonl": "^0.1.0-rc.6"
+    "@deepseek-ai/dsh-session-persistence-jsonl": "^0.1.0-rc.6",
+    "@deepseek-ai/dsh-client-ui-sidebar": "^0.1.0-rc.6"
   }
 }

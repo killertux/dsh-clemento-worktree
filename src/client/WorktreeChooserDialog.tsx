@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
 import type { WorkspaceId } from '@deepseek-ai/dsh-client-runtime/client'
-import type { WorktreeHeaderProps } from './contract/slots.ts'
+import type { WorktreeFooterActionProps } from './contract/slots.ts'
 import css from './WorktreeChooserDialog.module.css'
 
-interface DialogProps extends WorktreeHeaderProps {
+interface DialogProps extends WorktreeFooterActionProps {
   /** Withdraw the dialog. */
   onClose: () => void
 }
@@ -14,9 +14,9 @@ interface DialogProps extends WorktreeHeaderProps {
  * worktree's directory and opens it.
  */
 export function WorktreeChooserDialog({
-  useWorkspaceList, useWorktrees, listWorktrees, createWorktree, startSessionIn, onClose, t,
+  useWorkspaces, useWorktrees, listWorktrees, createWorktree, startSessionIn, onClose, t,
 }: DialogProps): JSX.Element {
-  const workspaces = useWorkspaceList(s => s)
+  const workspaces = useWorkspaces(s => s)
   const worktrees = useWorktrees(s => s)
   const [workspaceId, setWorkspaceId] = useState<WorkspaceId | undefined>(undefined)
   const [branch, setBranch] = useState('')
@@ -135,8 +135,8 @@ export function WorktreeChooserDialog({
   )
 }
 
-/** Header action button that opens the worktree chooser. */
-export function WorktreeNewSessionButton(props: WorktreeHeaderProps): JSX.Element {
+/** Sidebar footer action that opens the worktree chooser (always visible). */
+export function WorktreeFooterAction(props: WorktreeFooterActionProps): JSX.Element {
   const [open, setOpen] = useState(false)
   return (
     <>

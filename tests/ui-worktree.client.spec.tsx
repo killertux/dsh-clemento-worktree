@@ -7,10 +7,10 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import type { SessionId, WorkspaceId, WorkspaceListState, WorkspaceView } from '@deepseek-ai/dsh-client-runtime/client'
 import type { SnapshotSelectorHook } from '@deepseek-ai/dsh-client-ui-slots'
-import type { WorktreeView } from '@deepseek-ai/dsh-worktree/types'
-import type { WorktreeHeaderProps } from '../src/client/contract/slots.ts'
+import type { WorktreeView } from '@killertux/dsh-clemento-worktree/types'
+import type { WorktreeFooterActionProps } from '../src/client/contract/slots.ts'
 import { WorktreeBadge } from '../src/client/WorktreeBadge.tsx'
-import { WorktreeNewSessionButton } from '../src/client/WorktreeChooserDialog.tsx'
+import { WorktreeFooterAction } from '../src/client/WorktreeChooserDialog.tsx'
 import { en, zh } from '../src/client/locales.ts'
 
 afterEach(cleanup)
@@ -18,7 +18,7 @@ afterEach(cleanup)
 const SID = 's1' as SessionId
 const WID = 'w1' as WorkspaceId
 
-const t: WorktreeHeaderProps['t'] =
+const t: WorktreeFooterActionProps['t'] =
   (key, params) => (zh[key as keyof typeof zh] ?? key).replace('{{message}}', String(params?.message ?? ''))
 
 /** Wrap a constant snapshot as the selector hook the renderer binds. */
@@ -38,6 +38,12 @@ const kit = {
   useProjection: (() => undefined) as never,
   useInput: (() => { throw new Error('unused') }) as never,
   inputActions: { setDraft: () => { throw new Error('unused') }, submit: () => { throw new Error('unused') } } as never,
+}
+
+/** Root-scope kit for the sidebar footer action: global hooks, no session. */
+const footerKit = {
+  useSessions: (() => { throw new Error('unused') }) as never,
+  useWorkspaces: (() => { throw new Error('unused') }) as never,
 }
 
 const workspace = (id: WorkspaceId, title: string): WorkspaceView => ({
@@ -120,7 +126,7 @@ describe('WorktreeBadge', () => {
   })
 })
 
-describe('WorktreeNewSessionButton chooser', () => {
+describe('WorktreeFooterAction chooser', () => {
   it('opens the chooser and starts a session in an existing worktree', async () => {
     const main = worktree('wt-main', 'main', '/tmp/repo', true)
     const linked = worktree('wt-linked', 'feature/foo', '/tmp/repo-feature-foo')
@@ -131,11 +137,10 @@ describe('WorktreeNewSessionButton chooser', () => {
     })
     const startSessionIn = vi.fn(async () => {})
     render(
-      <WorktreeNewSessionButton
-        {...kit}
-        sessionId={SID}
+      <WorktreeFooterAction
+        {...footerKit}
         t={t}
-        useWorkspaceList={hook(workspaceList([workspace(WID, 'repo')]))}
+        useWorkspaces={hook(workspaceList([workspace(WID, 'repo')]))}
         useWorktrees={liveHook(() => current)}
         worktreeOf={vi.fn(async () => null)}
         listWorktrees={listWorktrees}
@@ -157,11 +162,10 @@ describe('WorktreeNewSessionButton chooser', () => {
     const createWorktree = vi.fn(async () => created)
     const startSessionIn = vi.fn(async () => {})
     render(
-      <WorktreeNewSessionButton
-        {...kit}
-        sessionId={SID}
+      <WorktreeFooterAction
+        {...footerKit}
         t={t}
-        useWorkspaceList={hook(workspaceList([workspace(WID, 'repo')]))}
+        useWorkspaces={hook(workspaceList([workspace(WID, 'repo')]))}
         useWorktrees={hook([])}
         worktreeOf={vi.fn(async () => null)}
         listWorktrees={listWorktrees}
@@ -185,11 +189,10 @@ describe('WorktreeNewSessionButton chooser', () => {
     const createWorktree = vi.fn(async () => { throw new Error('branch exists') })
     const startSessionIn = vi.fn(async () => {})
     render(
-      <WorktreeNewSessionButton
-        {...kit}
-        sessionId={SID}
+      <WorktreeFooterAction
+        {...footerKit}
         t={t}
-        useWorkspaceList={hook(workspaceList([workspace(WID, 'repo')]))}
+        useWorkspaces={hook(workspaceList([workspace(WID, 'repo')]))}
         useWorktrees={hook([])}
         worktreeOf={vi.fn(async () => null)}
         listWorktrees={listWorktrees}

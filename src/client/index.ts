@@ -1,22 +1,25 @@
 /**
  * Worktree UI plugin, browser half. Mounts the `worktreeRegistry` remote and
- * registers two `conversation.session.header.actions` entries: a static
- * badge with the current session's worktree name, and a button opening the
- * new-session-in-worktree chooser.
+ * registers two entries: a static worktree badge in the session header
+ * (`conversation.session.header.actions`, negative order), and an
+ * always-visible "New session in worktree" trigger in the sidebar footer
+ * (`sidebar.footer.action`, root scope — reachable on the blank new-session
+ * page without an open session) that opens the worktree chooser.
  */
 import type {} from '@deepseek-ai/dsh-api-remotes/client'
 import type {} from '@deepseek-ai/dsh-client-locale/client'
 import type { ConnectionHandle } from '@deepseek-ai/dsh-client-connection/client'
 import type { ClientContext, ISessions, SessionId, WorkspaceId } from '@deepseek-ai/dsh-client-runtime/client'
 import { createSnapshotStore } from '@deepseek-ai/dsh-client-runtime/client'
+import type { TypertRemoteNamespaceMap } from '@deepseek-ai/dsh-typert-protocol'
 import worktreeRemote from '@killertux/dsh-clemento-worktree/remote'
 import type { WorktreeView } from '@killertux/dsh-clemento-worktree/types'
 import type { WorktreeInjected } from './contract/slots.ts'
 import { en, zh } from './locales.ts'
 import { WorktreeBadge } from './WorktreeBadge.tsx'
-import { WorktreeNewSessionButton } from './WorktreeChooserDialog.tsx'
+import { WorktreeFooterAction } from './WorktreeChooserDialog.tsx'
 
-export type { WorktreeInjected, WorktreeHeaderProps } from './contract/slots.ts'
+export type { WorktreeInjected, WorktreeFooterActionProps, WorktreeBadgeProps } from './contract/slots.ts'
 
 const NS = 'worktree'
 /** How long the new-session flow waits for the created session to land in the list. */
@@ -26,7 +29,7 @@ const SESSION_ARRIVAL_TIMEOUT_MS = 3_000
 export const inject = ['slots', 'sessions', 'workspaces', 'connection', 'remote', 'locale']
 
 /**
- * Mount the worktree remote and register the header entries.
+ * Mount the worktree remote and register the badge + footer trigger.
  * @param ctx - client cordis context.
  * @returns disposer unwinding remote + registrations in reverse order.
  */
@@ -52,6 +55,13 @@ export async function apply(ctx: ClientContext): Promise<() => Promise<void>> {
     return result.value
   }
 
+  // The `worktreeRegistry` namespace is mounted by $mount above; read it from
+  // the service store directly (ctx.get) — property access through the ctx
+  // traceable would require a `remote.worktreeRegistry` inject entry that this
+  // plugin's own mount would deadlock on.
+  const worktreeRegistry = (): TypertRemoteNamespaceMap['worktreeRegistry'] =>
+    ctx.get('remote.worktreeRegistry') as TypertRemoteNamespaceMap['worktreeRegistry']
+
   /** Wait until the freshly created session summary lands (host frame merge). */
   const waitForSession = async (sessionId: SessionId): Promise<void> => {
     const deadline = Date.now() + SESSION_ARRIVAL_TIMEOUT_MS
@@ -62,19 +72,16 @@ export async function apply(ctx: ClientContext): Promise<() => Promise<void>> {
   }
 
   const injected = (): WorktreeInjected => ({
-    hooks: {
-      workspaceList: ctx.workspaces.list,
-      worktrees,
-    },
+    hooks: { worktrees },
     worktreeOf: async sessionId =>
-      unwrap(await ctx.remote.worktreeRegistry.bySession({ sessionId })).worktree,
+      unwrap(await worktreeRegistry().bySession({ sessionId })).worktree,
     listWorktrees: async workspaceId => {
-      const views = unwrap(await ctx.remote.worktreeRegistry.list({ workspaceId })).items
+      const views = unwrap(await worktreeRegistry().list({ workspaceId })).items
       worktrees.set(views)
       return views
     },
     createWorktree: async (workspaceId: WorkspaceId, branch: string) => {
-      const created = unwrap(await ctx.remote.worktreeRegistry.create({ workspaceId, branch })).worktree
+      const created = unwrap(await worktreeRegistry().create({ workspaceId, branch })).worktree
       worktrees.set([...(worktrees.getSnapshot() ?? []), created])
       return created
     },
@@ -87,29 +94,28 @@ export async function apply(ctx: ClientContext): Promise<() => Promise<void>> {
     },
   })
 
-  // Badge first (negative-order static context), then the interactive button.
-  ctx.slots.inject('conversation.session.header.actions', () => [
-    ctx.slots.register(
-      {
-        name: 'conversation.session.header.actions',
-        id: 'worktree-badge',
-        order: -10,
-        inject: injected,
-        locale: NS,
-      },
-      WorktreeBadge,
-    ),
-    ctx.slots.register(
-      {
-        name: 'conversation.session.header.actions',
-        id: 'worktree-new-session',
-        order: 0,
-        inject: injected,
-        locale: NS,
-      },
-      WorktreeNewSessionButton,
-    ),
-  ])
+  // The badge stays in the session header; the trigger moves to the sidebar
+  // footer so it is reachable without an open session.
+  ctx.slots.inject('conversation.session.header.actions', () => ctx.slots.register(
+    {
+      name: 'conversation.session.header.actions',
+      id: 'worktree-badge',
+      order: -10,
+      inject: injected,
+      locale: NS,
+    },
+    WorktreeBadge,
+  ))
+  ctx.slots.inject('sidebar.footer.action', () => ctx.slots.register(
+    {
+      name: 'sidebar.footer.action',
+      id: 'worktree-new-session',
+      order: 0,
+      inject: injected,
+      locale: NS,
+    },
+    WorktreeFooterAction,
+  ))
 
   return async () => {
     for (const dispose of disposers.reverse()) await dispose()
