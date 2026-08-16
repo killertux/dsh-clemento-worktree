@@ -70,9 +70,21 @@ additive seam in `ui-conversation` makes the chip consult it. The seam is
 upstream-ready in the dev clone; until it ships in a dsh release, apply it to
 the installed bundle once per dsh update:
 
+`pnpm patch` requires the package to be a direct dependency, so use a
+`patchedDependencies` entry instead (durable across installs; re-apply only
+when the dsh version bumps):
+
 ```sh
-cd /home/bruno/.dsh/profiles/web
-pnpm patch @deepseek-ai/dsh-client-ui-conversation@0.1.0-rc.6   # prints a patch dir
-node <repo>/scripts/patch-conversation-seam.mjs <patch-dir>
-pnpm patch-commit <patch-dir>
+# 1. copy the patch into the profile
+cp <repo>/patches/dsh-client-ui-conversation.patch /home/bruno/.dsh/profiles/web/patches/
+
+# 2. add to /home/bruno/.dsh/profiles/web/pnpm-workspace.yaml:
+#    patchedDependencies:
+#      '@deepseek-ai/dsh-client-ui-conversation@0.1.0-rc.6': patches/dsh-client-ui-conversation.patch
+
+# 3. apply
+cd /home/bruno/.dsh/profiles/web && pnpm install
 ```
+
+`scripts/patch-conversation-seam.mjs` regenerates the patch from a fresh
+bundle if the anchor lines ever shift.

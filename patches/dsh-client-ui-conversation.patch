@@ -1,0 +1,30 @@
+diff --git a/client.js b/client.js
+index 86e7906..c55a3ad 100644
+--- a/client.js
++++ b/client.js
+@@ -6783,7 +6783,7 @@ window.__ModuleLoader__.load({
+ 		};
+ 		//#endregion
+ 		//#region lib/types/client/skeleton/ConversationRoot.js
+-		function ConversationRoot({ sessionId, useSession, useSessions, useWorkspaces, useInput, useComposerBlock, renderSlot, renderSlotChain, selectWorkspace, t }) {
++		function ConversationRoot({ sessionId, useSession, useSessions, useWorkspaces, useInput, useComposerBlock, renderSlot, renderSlotChain, selectWorkspace, worktreeWorkspaceOf, t }) {
+ 			const openState = useSession((s) => s.openState);
+ 			const composerPhase = useSession((s) => s.composerPhase);
+ 			const pending = useSession((s) => s.pending) ?? [];
+@@ -6807,7 +6807,7 @@ window.__ModuleLoader__.load({
+ 				});
+ 				seatObserver.current.observe(seat);
+ 			}, []);
+-			const sessionWorkspace = sessionId === void 0 ? void 0 : workspaces.items.find((workspace) => workspace.sessionIds.includes(sessionId));
++			const sessionWorkspace = sessionId === void 0 ? void 0 : workspaces.items.find((workspace) => workspace.sessionIds.includes(sessionId)) ?? workspaces.items.find((workspace) => workspace.workspaceId === worktreeWorkspaceOf?.(sessionId));
+ 			const pendingWorkspace = workspaces.items.find((workspace) => workspace.workspaceId === pendingWorkspaceId);
+ 			(0, react.useEffect)(() => {
+ 				if (pendingWorkspaceId === void 0) return;
+@@ -9563,6 +9563,7 @@ window.__ModuleLoader__.load({
+ 				},
+ 				inject: (sessionId) => ({
+ 					hooks: { composerBlock: sessionId === void 0 ? ABSENT_BLOCK : composerBlocks.storeFor(sessionId) },
++					worktreeWorkspaceOf: (id) => { const m = ctx.get("worktreeWorkspace"); return m == null ? void 0 : m.workspaceOf(id) },
+ 					selectWorkspace: async (workspaceId) => {
+ 						const nextId = await workspaces.connectWorkspace(workspaceId);
+ 						if (sessionId !== void 0 && nextId !== sessionId) {
