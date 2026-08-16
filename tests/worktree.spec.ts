@@ -292,6 +292,21 @@ describe('worktree registry', () => {
     await expect(entity?.attachSession(SessionId('s1'))).rejects.toThrow(/resolves to/)
   })
 
+  it('maps indexed sessions to their owning workspace', async () => {
+    const root = makeDir('mapsess')
+    const linked = makeDir('mapsess-linked')
+    const elsewhere = makeDir('mapsess-else')
+    const h = await harness({
+      git: { isRepo: true, branch: 'main', worktrees: [{ path: linked, branch: 'feature/m', detached: false }] },
+      workspaces: [workspace('w1', root)],
+      sessions: [header('s1', linked), header('s2', elsewhere)],
+    })
+    await h.registry.discover({ workspaceId: WorkspaceId('w1') })
+    const result = await h.registry.mapBySessions({ sessionIds: [SessionId('s1'), SessionId('s2')] })
+    expect(result.mappings[String(SessionId('s1'))]).toBe(WorkspaceId('w1'))
+    expect(result.mappings[String(SessionId('s2'))]).toBeUndefined()
+  })
+
   it('requires a live workspace for remote operations', async () => {
     const h = await harness()
     await expect(h.registry.list({ workspaceId: WorkspaceId('missing') })).rejects.toThrow(/cannot resolve workspace/)

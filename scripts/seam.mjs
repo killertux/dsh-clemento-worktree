@@ -58,11 +58,50 @@ export function applySeam(code) {
     ],
   ]
 
+  return applyEdits(code, edits)
+}
+
+
+/** The ui-workspace seam edits, over its client bundle. */
+const WORKSPACE_EDITS = [
+  [
+    'browser signature',
+    'searchResultLimit, useDirectoryFlow, renderSlot, t }) {',
+    'searchResultLimit, useDirectoryFlow, renderSlot, worktreeWorkspaceOf, t }) {',
+  ],
+  [
+    'browser inject factory',
+    'const browserInjected = () => ({\n\t\t\t\tstartSession: (workspaceId) => {',
+    'const browserInjected = () => ({\n\t\t\t\tworktreeWorkspaceOf: (id) => { const m = ctx.get("worktreeWorkspace"); return m == null ? void 0 : m.workspaceOf(id) },\n\t\t\t\tstartSession: (workspaceId) => {',
+  ],
+  [
+    'deriveGroups call',
+    'sessionOrderByAccount[""] }\n\t\t\t}), [',
+    '...sessionOrderByAccount[""] }\n\t\t\t}), worktreeWorkspaceOf, [',
+  ],
+  [
+    'groupByWorkspace rehome',
+    'const stray = list.ids.map((id) => list.byId[id]).filter((s) => s !== void 0 && !accounted.has(s.id) && sessionVisible(s, list.current, archived));'
+      + '\n\t\t\tif (stray.length > 0) groups.push(buildGroup("", void 0, void 0, void 0, UNGROUPED_LABEL, ungroupedOrder === void 0 ? stray : orderedUngrouped(stray, ungroupedOrder), ungroupedOrder === void 0 ? "recency" : "account"));',
+    'const stray = list.ids.map((id) => list.byId[id]).filter((s) => s !== void 0 && !accounted.has(s.id) && sessionVisible(s, list.current, archived));'
+      + '\n\t\t\tconst wts = new Map(); const rest = [];'
+      + '\n\t\t\tfor (const s of stray) { const wid = worktreeWorkspaceOf?.(s.id); if (wid !== void 0) { const a = wts.get(wid); if (a === void 0) wts.set(wid, [s]); else a.push(s); } else rest.push(s); }'
+      + '\n\t\t\tfor (const g of groups) { const extra = wts.get(g.key); if (extra !== void 0) g.sessions.push(...extra); }'
+      + '\n\t\t\tif (rest.length > 0) groups.push(buildGroup("", void 0, void 0, void 0, UNGROUPED_LABEL, ungroupedOrder === void 0 ? rest : orderedUngrouped(rest, ungroupedOrder), ungroupedOrder === void 0 ? "recency" : "account"));',
+  ],
+]
+
+/** Apply the ui-workspace seam to one bundle source (idempotent per edit). */
+export function applyWorkspaceSeam(code) {
+  return applyEdits(code, WORKSPACE_EDITS)
+}
+
+function applyEdits(code, edits) {
   let out = code
   const missing = []
   let changed = false
   for (const [label, from, to] of edits) {
-    if (out.includes(to)) continue // already applied
+    if (out.includes(to)) continue
     const count = out.split(from).length - 1
     if (count !== 1) {
       missing.push(`${label} (found ${count}, expected 1)`)

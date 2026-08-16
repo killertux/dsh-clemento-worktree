@@ -24,6 +24,8 @@ import type { WorktreeDomainState, WorktreeRecord } from './spec.ts'
 import type {
   Worktree,
   WorktreeBySessionRequest,
+  WorktreeMapSessionsRequest,
+  WorktreeMapSessionsResult,
   WorktreeCreateRequest,
   WorktreeCreateResult,
   WorktreeDeleteRequest,
@@ -39,6 +41,8 @@ import type {
 export type {
   Worktree,
   WorktreeView,
+  WorktreeMapSessionsRequest,
+  WorktreeMapSessionsResult,
   WorktreeBySessionRequest,
   WorktreeCreateRequest,
   WorktreeCreateResult,
@@ -263,6 +267,24 @@ export class WorktreeRegistry extends TypertRemoteService {
     if (path === undefined) return { worktree: null }
     const entity = this.byPath(path)
     return { worktree: entity === undefined ? null : this.view(entity) }
+  }
+
+  /**
+   * The owning workspace of each indexed session whose cwd matches a
+   * registered worktree, for the sidebar grouping of worktree sessions.
+   * @param request - sessions to map.
+   * @returns session id → owning workspace id (indexed sessions only).
+   */
+  @Remote('mapBySessions')
+  async mapBySessions(request: WorktreeMapSessionsRequest): Promise<WorktreeMapSessionsResult> {
+    const mappings: Record<string, WorkspaceId> = {}
+    for (const sessionId of request.sessionIds) {
+      const path = this.sessionPaths.get(sessionId)
+      if (path === undefined) continue
+      const entity = this.byPath(path)
+      if (entity !== undefined) mappings[String(sessionId)] = entity.workspaceId
+    }
+    return { mappings }
   }
 
   /**

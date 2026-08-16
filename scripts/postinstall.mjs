@@ -13,7 +13,7 @@ import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { createRequire } from 'node:module'
 import { dirname, join } from 'node:path'
-import { applySeam } from './seam.mjs'
+import { applySeam, applyWorkspaceSeam } from './seam.mjs'
 
 const require = createRequire(import.meta.url)
 
@@ -29,16 +29,16 @@ function dshHome() {
  * copy the web server actually serves) directly, and fall back to module
  * resolution for the post-link case.
  */
-function findBundle() {
+function findBundle(packageName) {
   const candidates = [
-    join(dshHome(), 'profiles', 'node_modules', '@deepseek-ai', 'dsh-client-ui-conversation', 'lib', 'client.js'),
-    join(dshHome(), 'profiles', 'web', 'node_modules', '@deepseek-ai', 'dsh-client-ui-conversation', 'lib', 'client.js'),
+    join(dshHome(), 'profiles', 'node_modules', '@deepseek-ai', packageName, 'lib', 'client.js'),
+    join(dshHome(), 'profiles', 'web', 'node_modules', '@deepseek-ai', packageName, 'lib', 'client.js'),
   ]
   for (const candidate of candidates) {
     if (existsSync(candidate)) return candidate
   }
   try {
-    const manifest = require.resolve('@deepseek-ai/dsh-client-ui-conversation/package.json')
+    const manifest = require.resolve(`@deepseek-ai/${packageName}/package.json`)
     const candidate = join(dirname(manifest), 'lib', 'client.js')
     if (existsSync(candidate)) return candidate
   } catch {
@@ -47,11 +47,36 @@ function findBundle() {
   return undefined
 }
 
-const bundle = findBundle()
-if (bundle === undefined) {
-  console.log('[dsh-clemento-worktree] @deepseek-ai/dsh-client-ui-conversation not found (is dsh installed?) — seam not applied')
-  process.exit(0)
+/** Apply one seam to one bundle; warn-only on mismatch. */
+function patch(bundle, apply, label) {
+  if (bundle === undefined) {
+    console.log(`[dsh-clemento-worktree] ${label} bundle not found (is dsh installed?) — seam not applied`)
+    return
+  }
+  let code
+  try {
+    code = readFileSync(bundle, 'utf8')
+  } catch (error) {
+    console.log(`[dsh-clemento-worktree] could not read ${bundle} — seam not applied`)
+    return
+  }
+  const result = apply(code)
+  if (result.status === 'already') {
+    console.log(`[dsh-clemento-worktree] ${label} worktree seam already applied`)
+    return
+  }
+  if (result.status === 'mismatch') {
+    console.warn(`[dsh-clemento-worktree] WARNING: could not apply the ${label} worktree seam (bundle layout differs):`)
+    for (const anchor of result.missing) console.warn('  - ' + anchor)
+    console.warn('  The workspace chip / sidebar grouping will not reflect worktree sessions until the seam ships upstream.')
+    return
+  }
+  writeFileSync(bundle, result.code)
+  console.log(`[dsh-clemento-worktree] applied the ${label} worktree seam — restart the web UI`)
 }
+
+patch(findBundle('dsh-client-ui-conversation'), applySeam, 'ui-conversation')
+patch(findBundle('dsh-client-ui-workspace'), applyWorkspaceSeam, 'ui-workspace')
 
 let code
 try {

@@ -64,12 +64,20 @@ export async function apply(ctx: ClientContext): Promise<() => Promise<void>> {
   const worktreeRegistry = (): TypertRemoteNamespaceMap['worktreeRegistry'] =>
     ctx.get('remote.worktreeRegistry') as TypertRemoteNamespaceMap['worktreeRegistry']
 
-  /** Resolve and cache the owning workspace of one session running in a worktree. */
-  const rememberWorktreeWorkspace = async (sessionId: SessionId): Promise<void> => {
-    const worktree = unwrap(await worktreeRegistry().bySession({ sessionId })).worktree
-    if (worktree !== null) {
-      worktreeBySession.set({ ...worktreeBySession.getSnapshot(), [sessionId]: worktree.workspaceId })
+  /** Resolve and cache the owning workspace of sessions running in a worktree. */
+  const rememberWorktreeWorkspaces = async (sessionIds: readonly SessionId[]): Promise<void> => {
+    const pending = sessionIds.filter(id => worktreeBySession.getSnapshot()[id] === undefined)
+    if (pending.length === 0) return
+    const result = unwrap(await worktreeRegistry().mapBySessions({ sessionIds: pending })).mappings
+    const next = { ...worktreeBySession.getSnapshot() }
+    let changed = false
+    for (const [id, workspaceId] of Object.entries(result)) {
+      if (next[id as SessionId] !== workspaceId) {
+        next[id as SessionId] = workspaceId
+        changed = true
+      }
     }
+    if (changed) worktreeBySession.set(next)
   }
 
   // Expose the mapping to the ui-conversation seam: the workspace chip
@@ -80,16 +88,15 @@ export async function apply(ctx: ClientContext): Promise<() => Promise<void>> {
       worktreeBySession.getSnapshot()[sessionId],
   })
 
-  // Keep the mapping fresh for the current session: resolve on boot and
-  // whenever the current session changes.
+  // Keep the mapping fresh for every session: resolve all uncached ids on
+  // boot and whenever the session list changes (one bulk remote call; the
+  // sidebar grouping and the workspace chip both read the cache).
   const sessionsList = sessions.list
-  void rememberWorktreeWorkspace(sessionsList.getSnapshot().current as SessionId)
-  ctx.effect(() => sessionsList.subscribe(() => {
-    const current = sessionsList.getSnapshot().current
-    if (current !== undefined && worktreeBySession.getSnapshot()[current] === undefined) {
-      void rememberWorktreeWorkspace(current)
-    }
-  }), 'ui-worktree: current-session workspace sync')
+  const syncWorktreeWorkspaces = (): void => {
+    void rememberWorktreeWorkspaces(sessionsList.getSnapshot().ids)
+  }
+  syncWorktreeWorkspaces()
+  ctx.effect(() => sessionsList.subscribe(syncWorktreeWorkspaces), 'ui-worktree: session workspace sync')
 
   const injected = (): WorktreeInjected => ({
     hooks: { worktrees },

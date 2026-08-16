@@ -8,8 +8,8 @@
  */
 import { Context, Service } from '@deepseek-ai/cordis';
 import { TypertRemoteService } from '@deepseek-ai/dsh-typert-protocol';
-import type { Worktree, WorktreeBySessionRequest, WorktreeCreateRequest, WorktreeCreateResult, WorktreeDeleteRequest, WorktreeDeleteResult, WorktreeId as WorktreeIdBrand, WorktreeListRequest, WorktreeListResult, WorktreeResolveRequest, WorktreeResolveResult } from './types.ts';
-export type { Worktree, WorktreeView, WorktreeBySessionRequest, WorktreeCreateRequest, WorktreeCreateResult, WorktreeDeleteRequest, WorktreeDeleteResult, WorktreeListRequest, WorktreeListResult, WorktreeResolveRequest, WorktreeResolveResult, } from './types.ts';
+import type { Worktree, WorktreeBySessionRequest, WorktreeMapSessionsRequest, WorktreeMapSessionsResult, WorktreeCreateRequest, WorktreeCreateResult, WorktreeDeleteRequest, WorktreeDeleteResult, WorktreeId as WorktreeIdBrand, WorktreeListRequest, WorktreeListResult, WorktreeResolveRequest, WorktreeResolveResult } from './types.ts';
+export type { Worktree, WorktreeView, WorktreeMapSessionsRequest, WorktreeMapSessionsResult, WorktreeBySessionRequest, WorktreeCreateRequest, WorktreeCreateResult, WorktreeDeleteRequest, WorktreeDeleteResult, WorktreeListRequest, WorktreeListResult, WorktreeResolveRequest, WorktreeResolveResult, } from './types.ts';
 export { worktreeDomainState, worktreeRecord, worktreeDomainSpec } from './spec.ts';
 export type { WorktreeDomainState, WorktreeRecord } from './spec.ts';
 export { WorktreeMoveInvalidError } from './entity.ts';
@@ -89,6 +89,13 @@ export declare class WorktreeRegistry extends TypertRemoteService {
      * @returns the worktree view, or null when the session is in no worktree.
      */
     bySession(request: WorktreeBySessionRequest): Promise<WorktreeResolveResult>;
+    /**
+     * The owning workspace of each indexed session whose cwd matches a
+     * registered worktree, for the sidebar grouping of worktree sessions.
+     * @param request - sessions to map.
+     * @returns session id → owning workspace id (indexed sessions only).
+     */
+    mapBySessions(request: WorktreeMapSessionsRequest): Promise<WorktreeMapSessionsResult>;
     /**
      * Look up a worktree by id.
      * @param id - Worktree id.

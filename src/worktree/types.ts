@@ -82,6 +82,16 @@ export interface WorktreeResolveResult {
   worktree: WorktreeView | null
 }
 
+/** worktree.mapBySessions request: sessions whose owning workspace to resolve. */
+export interface WorktreeMapSessionsRequest {
+  sessionIds: SessionId[]
+}
+
+/** worktree.mapBySessions result: session id → owning workspace id. */
+export interface WorktreeMapSessionsResult {
+  mappings: Record<string, WorkspaceId>
+}
+
 /**
  * One worktree: a durable record of a git worktree directory owned by a
  * workspace, with an ordered session account. The main worktree (the

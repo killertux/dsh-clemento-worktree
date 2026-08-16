@@ -3,7 +3,7 @@ import type {
   RemoteResult,
   TypertRemoteContribution,
 } from '@deepseek-ai/dsh-typert-protocol'
-import type { WorktreeBySessionRequest, WorktreeCreateRequest, WorktreeCreateResult, WorktreeDeleteRequest, WorktreeDeleteResult, WorktreeListRequest, WorktreeListResult, WorktreeResolveRequest, WorktreeResolveResult } from '@killertux/dsh-clemento-worktree/types'
+import type { WorktreeBySessionRequest, WorktreeCreateRequest, WorktreeCreateResult, WorktreeDeleteRequest, WorktreeDeleteResult, WorktreeListRequest, WorktreeListResult, WorktreeMapSessionsRequest, WorktreeMapSessionsResult, WorktreeResolveRequest, WorktreeResolveResult } from '@killertux/dsh-clemento-worktree/types'
 
 declare module '@deepseek-ai/dsh-typert-protocol' {
   interface TypertRemoteNamespace$776f726b747265655265676973747279 {
@@ -12,6 +12,7 @@ declare module '@deepseek-ai/dsh-typert-protocol' {
     delete: (request: WorktreeDeleteRequest) => Promise<RemoteResult<WorktreeDeleteResult>>
     discover: (request: WorktreeListRequest) => Promise<RemoteResult<WorktreeListResult>>
     list: (request: WorktreeListRequest) => Promise<RemoteResult<WorktreeListResult>>
+    mapBySessions: (request: WorktreeMapSessionsRequest) => Promise<RemoteResult<WorktreeMapSessionsResult>>
     resolve: (request: WorktreeResolveRequest) => Promise<RemoteResult<WorktreeResolveResult>>
   }
   interface TypertRemoteMap {
@@ -20,6 +21,7 @@ declare module '@deepseek-ai/dsh-typert-protocol' {
     'worktreeRegistry/delete': (request: WorktreeDeleteRequest) => Promise<RemoteResult<WorktreeDeleteResult>>
     'worktreeRegistry/discover': (request: WorktreeListRequest) => Promise<RemoteResult<WorktreeListResult>>
     'worktreeRegistry/list': (request: WorktreeListRequest) => Promise<RemoteResult<WorktreeListResult>>
+    'worktreeRegistry/mapBySessions': (request: WorktreeMapSessionsRequest) => Promise<RemoteResult<WorktreeMapSessionsResult>>
     'worktreeRegistry/resolve': (request: WorktreeResolveRequest) => Promise<RemoteResult<WorktreeResolveResult>>
   }
   interface TypertRemoteNamespaceMap {

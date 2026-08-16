@@ -72,6 +72,11 @@ installed `@deepseek-ai/dsh-client-ui-conversation` bundle and adds
   where the plugin renders its worktree dropdown right of the workspace
   selector.
 
+It also patches `@deepseek-ai/dsh-client-ui-workspace` so the sidebar groups
+worktree sessions under their owning workspace instead of Ungrouped (the
+plugin caches the full session→workspace mapping via the
+`worktreeRegistry.mapBySessions` remote).
+
 pnpm blocks install scripts unless allowed, so allow the plugin's once:
 
 ```yaml
