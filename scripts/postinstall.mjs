@@ -77,25 +77,3 @@ function patch(bundle, apply, label) {
 
 patch(findBundle('dsh-client-ui-conversation'), applySeam, 'ui-conversation')
 patch(findBundle('dsh-client-ui-workspace'), applyWorkspaceSeam, 'ui-workspace')
-
-let code
-try {
-  code = readFileSync(bundle, 'utf8')
-} catch (error) {
-  console.log(`[dsh-clemento-worktree] could not read ${bundle} — seam not applied`)
-  process.exit(0)
-}
-
-const result = applySeam(code)
-if (result.status === 'already') {
-  console.log('[dsh-clemento-worktree] ui-conversation worktree seam already applied')
-  process.exit(0)
-}
-if (result.status === 'mismatch') {
-  console.warn('[dsh-clemento-worktree] WARNING: could not apply the ui-conversation worktree seam (bundle layout differs):')
-  for (const anchor of result.missing) console.warn('  - ' + anchor)
-  console.warn('  The workspace chip will not keep the workspace selected for worktree sessions until the seam ships upstream.')
-  process.exit(0)
-}
-writeFileSync(bundle, result.code)
-console.log('[dsh-clemento-worktree] applied the ui-conversation worktree seam (workspace chip keeps the workspace for worktree sessions) — restart the web UI')
