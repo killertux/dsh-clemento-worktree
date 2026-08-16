@@ -1,5 +1,5 @@
-import type { WorktreeFooterActionProps } from './contract/slots.ts';
-interface DialogProps extends WorktreeFooterActionProps {
+import type { WorktreeOverlayActionProps } from './contract/slots.ts';
+interface DialogProps extends WorktreeOverlayActionProps {
     /** Withdraw the dialog. */
     onClose: () => void;
 }
@@ -9,6 +9,6 @@ interface DialogProps extends WorktreeFooterActionProps {
  * worktree's directory and opens it.
  */
 export declare function WorktreeChooserDialog({ useWorkspaces, useWorktrees, listWorktrees, createWorktree, startSessionIn, onClose, t, }: DialogProps): JSX.Element;
-/** Sidebar footer action that opens the worktree chooser (always visible). */
-export declare function WorktreeFooterAction(props: WorktreeFooterActionProps): JSX.Element;
+/** Floating worktree-setup trigger (shell overlay layer, root scope). */
+export declare function WorktreeComposerButton(props: WorktreeOverlayActionProps): JSX.Element;
 export {};

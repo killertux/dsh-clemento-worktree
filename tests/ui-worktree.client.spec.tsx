@@ -8,9 +8,9 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
 import type { SessionId, WorkspaceId, WorkspaceListState, WorkspaceView } from '@deepseek-ai/dsh-client-runtime/client'
 import type { SnapshotSelectorHook } from '@deepseek-ai/dsh-client-ui-slots'
 import type { WorktreeView } from '@killertux/dsh-clemento-worktree/types'
-import type { WorktreeFooterActionProps } from '../src/client/contract/slots.ts'
+import type { WorktreeOverlayActionProps } from '../src/client/contract/slots.ts'
 import { WorktreeBadge } from '../src/client/WorktreeBadge.tsx'
-import { WorktreeFooterAction } from '../src/client/WorktreeChooserDialog.tsx'
+import { WorktreeComposerButton } from '../src/client/WorktreeChooserDialog.tsx'
 import { en, zh } from '../src/client/locales.ts'
 
 afterEach(cleanup)
@@ -18,7 +18,7 @@ afterEach(cleanup)
 const SID = 's1' as SessionId
 const WID = 'w1' as WorkspaceId
 
-const t: WorktreeFooterActionProps['t'] =
+const t: WorktreeOverlayActionProps['t'] =
   (key, params) => (zh[key as keyof typeof zh] ?? key).replace('{{message}}', String(params?.message ?? ''))
 
 /** Wrap a constant snapshot as the selector hook the renderer binds. */
@@ -40,7 +40,7 @@ const kit = {
   inputActions: { setDraft: () => { throw new Error('unused') }, submit: () => { throw new Error('unused') } } as never,
 }
 
-/** Root-scope kit for the sidebar footer action: global hooks, no session. */
+/** Root-scope kit for the shell-overlay trigger: global hooks, no session. */
 const footerKit = {
   useSessions: (() => { throw new Error('unused') }) as never,
   useWorkspaces: (() => { throw new Error('unused') }) as never,
@@ -126,7 +126,7 @@ describe('WorktreeBadge', () => {
   })
 })
 
-describe('WorktreeFooterAction chooser', () => {
+describe('WorktreeComposerButton chooser', () => {
   it('opens the chooser and starts a session in an existing worktree', async () => {
     const main = worktree('wt-main', 'main', '/tmp/repo', true)
     const linked = worktree('wt-linked', 'feature/foo', '/tmp/repo-feature-foo')
@@ -137,7 +137,7 @@ describe('WorktreeFooterAction chooser', () => {
     })
     const startSessionIn = vi.fn(async () => {})
     render(
-      <WorktreeFooterAction
+      <WorktreeComposerButton
         {...footerKit}
         t={t}
         useWorkspaces={hook(workspaceList([workspace(WID, 'repo')]))}
@@ -162,7 +162,7 @@ describe('WorktreeFooterAction chooser', () => {
     const createWorktree = vi.fn(async () => created)
     const startSessionIn = vi.fn(async () => {})
     render(
-      <WorktreeFooterAction
+      <WorktreeComposerButton
         {...footerKit}
         t={t}
         useWorkspaces={hook(workspaceList([workspace(WID, 'repo')]))}
@@ -189,7 +189,7 @@ describe('WorktreeFooterAction chooser', () => {
     const createWorktree = vi.fn(async () => { throw new Error('branch exists') })
     const startSessionIn = vi.fn(async () => {})
     render(
-      <WorktreeFooterAction
+      <WorktreeComposerButton
         {...footerKit}
         t={t}
         useWorkspaces={hook(workspaceList([workspace(WID, 'repo')]))}

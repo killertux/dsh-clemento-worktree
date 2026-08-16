@@ -17,9 +17,9 @@ import type { WorktreeView } from '@killertux/dsh-clemento-worktree/types'
 import type { WorktreeInjected } from './contract/slots.ts'
 import { en, zh } from './locales.ts'
 import { WorktreeBadge } from './WorktreeBadge.tsx'
-import { WorktreeFooterAction } from './WorktreeChooserDialog.tsx'
+import { WorktreeComposerButton } from './WorktreeChooserDialog.tsx'
 
-export type { WorktreeInjected, WorktreeFooterActionProps, WorktreeBadgeProps } from './contract/slots.ts'
+export type { WorktreeInjected, WorktreeOverlayActionProps, WorktreeBadgeProps } from './contract/slots.ts'
 
 const NS = 'worktree'
 /** How long the new-session flow waits for the created session to land in the list. */
@@ -94,8 +94,9 @@ export async function apply(ctx: ClientContext): Promise<() => Promise<void>> {
     },
   })
 
-  // The badge stays in the session header; the trigger moves to the sidebar
-  // footer so it is reachable without an open session.
+  // The badge stays in the session header; the trigger floats in the shell
+  // overlay layer (root scope), so it is reachable on the blank new-session
+  // page without an open session.
   ctx.slots.inject('conversation.session.header.actions', () => ctx.slots.register(
     {
       name: 'conversation.session.header.actions',
@@ -106,15 +107,15 @@ export async function apply(ctx: ClientContext): Promise<() => Promise<void>> {
     },
     WorktreeBadge,
   ))
-  ctx.slots.inject('sidebar.footer.action', () => ctx.slots.register(
+  ctx.slots.inject('shell.overlay', () => ctx.slots.register(
     {
-      name: 'sidebar.footer.action',
+      name: 'shell.overlay',
       id: 'worktree-new-session',
       order: 0,
       inject: injected,
       locale: NS,
     },
-    WorktreeFooterAction,
+    WorktreeComposerButton,
   ))
 
   return async () => {

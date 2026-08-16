@@ -36,8 +36,8 @@ export type WorktreeInjected = {
     /** Create a session in a worktree directory and open it. */
     startSessionIn(worktreePath: string): Promise<void>;
 };
-/** Props of the always-visible sidebar footer trigger + its chooser dialog. */
-export type WorktreeFooterActionProps = PropsRuntime<'sidebar.footer.action'> & {
+/** Props of the floating worktree-setup trigger + its chooser dialog. */
+export type WorktreeOverlayActionProps = PropsRuntime<'shell.overlay'> & {
     /** Bound worktree-list selector hook (renderer binds the inject hooks compartment). */
     useWorktrees: SnapshotSelectorHook<WorktreeView[] | undefined>;
 } & Omit<WorktreeInjected, 'hooks'> & PropsLocale<'worktree'>;

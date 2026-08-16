@@ -12,7 +12,7 @@ import type { HostObservable, PropsLocale, PropsRuntime, SnapshotSelectorHook } 
 // and ui-sidebar's footer-action entry into every program that sees this
 // contract, so PropsRuntime resolves.
 import type {} from '@deepseek-ai/dsh-client-ui-conversation/client'
-import type {} from '@deepseek-ai/dsh-client-ui-sidebar/client'
+import type {} from '@deepseek-ai/dsh-client-ui-layout/client'
 import type { WorktreeKey } from '../locales.ts'
 import type { WorktreeView } from '@killertux/dsh-clemento-worktree/types'
 
@@ -44,9 +44,9 @@ export type WorktreeInjected = {
   startSessionIn(worktreePath: string): Promise<void>
 }
 
-/** Props of the always-visible sidebar footer trigger + its chooser dialog. */
-export type WorktreeFooterActionProps =
-  PropsRuntime<'sidebar.footer.action'>
+/** Props of the floating worktree-setup trigger + its chooser dialog. */
+export type WorktreeOverlayActionProps =
+  PropsRuntime<'shell.overlay'>
   & {
     /** Bound worktree-list selector hook (renderer binds the inject hooks compartment). */
     useWorktrees: SnapshotSelectorHook<WorktreeView[] | undefined>

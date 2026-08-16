@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
 import type { WorkspaceId } from '@deepseek-ai/dsh-client-runtime/client'
-import type { WorktreeFooterActionProps } from './contract/slots.ts'
+import type { WorktreeOverlayActionProps } from './contract/slots.ts'
 import css from './WorktreeChooserDialog.module.css'
 
-interface DialogProps extends WorktreeFooterActionProps {
+interface DialogProps extends WorktreeOverlayActionProps {
   /** Withdraw the dialog. */
   onClose: () => void
 }
@@ -135,14 +135,14 @@ export function WorktreeChooserDialog({
   )
 }
 
-/** Sidebar footer action that opens the worktree chooser (always visible). */
-export function WorktreeFooterAction(props: WorktreeFooterActionProps): JSX.Element {
+/** Floating worktree-setup trigger (shell overlay layer, root scope). */
+export function WorktreeComposerButton(props: WorktreeOverlayActionProps): JSX.Element {
   const [open, setOpen] = useState(false)
   return (
     <>
       <button
         type="button"
-        className={css.button}
+        className={css.floating}
         onClick={() => { setOpen(true) }}
       >
         {props.t('button.newSession')}
