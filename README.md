@@ -70,21 +70,28 @@ additive seam in `ui-conversation` makes the chip consult it. The seam is
 upstream-ready in the dev clone; until it ships in a dsh release, apply it to
 the installed bundle once per dsh update:
 
-`pnpm patch` requires the package to be a direct dependency, so use a
-`patchedDependencies` entry instead (durable across installs; re-apply only
-when the dsh version bumps):
+The core packages are not profile dependencies (they come from the dsh
+installation, mirrored as symlinks under `~/.dsh/profiles/node_modules`), so
+`pnpm patch` / `patchedDependencies` can't see them. Patch the served copy
+directly instead:
 
 ```sh
-# 1. copy the patch into the profile
-cp <repo>/patches/dsh-client-ui-conversation.patch /home/bruno/.dsh/profiles/web/patches/
-
-# 2. add to /home/bruno/.dsh/profiles/web/pnpm-workspace.yaml:
-#    patchedDependencies:
-#      '@deepseek-ai/dsh-client-ui-conversation@0.1.0-rc.6': patches/dsh-client-ui-conversation.patch
-
-# 3. apply
-cd /home/bruno/.dsh/profiles/web && pnpm install
+node <repo>/scripts/patch-conversation-seam.mjs   /home/bruno/.dsh/profiles/node_modules/@deepseek-ai/dsh-client-ui-conversation
 ```
 
-`scripts/patch-conversation-seam.mjs` regenerates the patch from a fresh
-bundle if the anchor lines ever shift.
+Re-run whenever the dsh version bumps (the copy lives in the npx cache; the
+script verifies each anchor exactly once and refuses to corrupt a changed
+bundle). The seam is upstream-ready in the dev clone for when it ships.
+
+For a durable patch that survives version bumps, add the package as a direct
+profile dependency first, then register the bundled patch:
+
+```sh
+cd /home/bruno/.dsh/profiles/web
+pnpm add @deepseek-ai/dsh-client-ui-conversation@0.1.0-rc.6
+# pnpm-workspace.yaml:
+#   patchedDependencies:
+#     '@deepseek-ai/dsh-client-ui-conversation@0.1.0-rc.6': patches/dsh-client-ui-conversation.patch
+pnpm install
+```
+
