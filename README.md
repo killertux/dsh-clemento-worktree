@@ -96,8 +96,12 @@ The postinstall is idempotent and never fails the install: if the bundle
 layout differs (a dsh version bump), it logs a warning and the plugin still
 works — the chip just falls back to "Choose workspace" until the seam ships
 upstream. `scripts/patch-conversation-seam.mjs` is the manual entry point,
-and `patches/dsh-client-ui-conversation.patch` is the pristine→patched diff
-for the `patchedDependencies` alternative.
+`patches/dsh-client-ui-conversation.patch` is the pristine→patched diff for
+the `patchedDependencies` alternative, and
+`scripts/restore-workspace-seam.mjs` reverses the ui-workspace seam (and
+repairs the mangled spread a broken early seam version inserted) — run it
+against `/home/bruno/.dsh/profiles/node_modules/@deepseek-ai/dsh-client-ui-workspace`
+if the web UI fails to load that bundle.
 
 ## Known behavior
 

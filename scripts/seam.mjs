@@ -77,7 +77,7 @@ const WORKSPACE_EDITS = [
   [
     'deriveGroups call',
     'sessionOrderByAccount[""] }\n\t\t\t}), [',
-    '...sessionOrderByAccount[""] }\n\t\t\t}), worktreeWorkspaceOf, [',
+    'sessionOrderByAccount[""] }\n\t\t\t}), worktreeWorkspaceOf, [',
   ],
   [
     'groupByWorkspace rehome',
