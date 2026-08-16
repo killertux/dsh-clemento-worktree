@@ -34,12 +34,20 @@ if (!code.includes('worktreeWorkspaceOf') && !code.includes('...sessionOrderByAc
 const edits = [
   // repair the mangled W3 spread
   ['repair W3 spread', '{ ungroupedOrder: ...sessionOrderByAccount[""] }', '{ ungroupedOrder: sessionOrderByAccount[""] }'],
-  // reverse the deriveGroups argument addition
-  ['reverse deriveGroups arg', 'sessionOrderByAccount[""] }\n\t\t\t}), worktreeWorkspaceOf, [', 'sessionOrderByAccount[""] }\n\t\t\t}), ['],
+  // reverse the deriveGroups argument addition — both the broken (stray
+  // useMemo arg) and the corrected (5th deriveGroups arg) forms
+  ['reverse deriveGroups arg (broken)', 'sessionOrderByAccount[""] }\n\t\t\t}), worktreeWorkspaceOf, [', 'sessionOrderByAccount[""] }\n\t\t\t}), ['],
+  ['reverse deriveGroups arg (fixed)', 'sessionOrderByAccount[""] }\n\t\t\t}, worktreeWorkspaceOf), [', 'sessionOrderByAccount[""] }\n\t\t\t}), ['],
   // reverse the signature member
   ['reverse signature', 'renderSlot, worktreeWorkspaceOf, t }) {', 'renderSlot, t }) {'],
   // reverse the inject factory member
   ['reverse factory', 'worktreeWorkspaceOf: (id) => { const m = ctx.get("worktreeWorkspace"); return m == null ? void 0 : m.workspaceOf(id) },\n\t\t\t\tstartSession: (workspaceId) => {', 'startSession: (workspaceId) => {'],
+  // reverse the groupByWorkspace signature parameter
+  ['reverse groupByWorkspace signature', 'function groupByWorkspace(list, workspaces, archived, ungroupedOrder, worktreeWorkspaceOf) {', 'function groupByWorkspace(list, workspaces, archived, ungroupedOrder) {'],
+  // reverse the deriveGroups signature parameter
+  ['reverse deriveGroups signature', 'function deriveGroups(list, workspaces, archivedSessionIds, view, worktreeWorkspaceOf) {', 'function deriveGroups(list, workspaces, archivedSessionIds, view) {'],
+  // reverse the deriveGroups → groupByWorkspace pass-through
+  ['reverse pass-through', 'for (const g of groupByWorkspace(list, workspaces, archived, view.ungroupedOrder, worktreeWorkspaceOf)) {', 'for (const g of groupByWorkspace(list, workspaces, archived, view.ungroupedOrder)) {'],
   // reverse the groupByWorkspace rehome block
   ['reverse rehome block', 'const stray = list.ids.map((id) => list.byId[id]).filter((s) => s !== void 0 && !accounted.has(s.id) && sessionVisible(s, list.current, archived));'
     + '\n\t\t\tconst wts = new Map(); const rest = [];'

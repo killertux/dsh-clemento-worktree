@@ -17,6 +17,7 @@
  * postinstall step; upstream equivalents live in ui-conversation's
  * ConversationRoot.tsx / apply.ts / contract.
  */
+import { createContext, runInContext } from 'node:vm'
 
 /** Apply the seam to one bundle source. Returns the transformed code when applied. */
 export function applySeam(code) {
@@ -62,8 +63,23 @@ export function applySeam(code) {
 }
 
 
-/** The ui-workspace seam edits, over its client bundle. */
-const WORKSPACE_EDITS = [
+/**
+ * The ui-workspace seam edits, over its client bundle.
+ *
+ * Edit set (all idempotent):
+ *   1. `WorkspaceBrowser` props gain `worktreeWorkspaceOf`;
+ *   2. the inject factory wires it from the optional `ctx.worktreeWorkspace`
+ *      service;
+ *   3. `deriveGroups(...)` gains the mapping as its 5th argument (the call is
+ *      patched *inside* the call, not as a stray `useMemo` argument);
+ *   4. `groupByWorkspace` and `deriveGroups` signatures declare the mapping
+ *      parameter — the rehome block below reads it, so a bundle without these
+ *      signature edits throws `ReferenceError` and kills the sidebar;
+ *   5. `deriveGroups` passes the mapping through to `groupByWorkspace`;
+ *   6. the rehome block groups worktree sessions under their owning workspace
+ *      instead of Ungrouped.
+ */
+const WORKSPACE_SIMPLE_EDITS = [
   [
     'browser signature',
     'searchResultLimit, useDirectoryFlow, renderSlot, t }) {',
@@ -75,9 +91,19 @@ const WORKSPACE_EDITS = [
     'const browserInjected = () => ({\n\t\t\t\tworktreeWorkspaceOf: (id) => { const m = ctx.get("worktreeWorkspace"); return m == null ? void 0 : m.workspaceOf(id) },\n\t\t\t\tstartSession: (workspaceId) => {',
   ],
   [
-    'deriveGroups call',
-    'sessionOrderByAccount[""] }\n\t\t\t}), [',
-    'sessionOrderByAccount[""] }\n\t\t\t}), worktreeWorkspaceOf, [',
+    'groupByWorkspace signature',
+    'function groupByWorkspace(list, workspaces, archived, ungroupedOrder) {',
+    'function groupByWorkspace(list, workspaces, archived, ungroupedOrder, worktreeWorkspaceOf) {',
+  ],
+  [
+    'deriveGroups signature',
+    'function deriveGroups(list, workspaces, archivedSessionIds, view) {',
+    'function deriveGroups(list, workspaces, archivedSessionIds, view, worktreeWorkspaceOf) {',
+  ],
+  [
+    'deriveGroups pass-through',
+    'for (const g of groupByWorkspace(list, workspaces, archived, view.ungroupedOrder)) {',
+    'for (const g of groupByWorkspace(list, workspaces, archived, view.ungroupedOrder, worktreeWorkspaceOf)) {',
   ],
   [
     'groupByWorkspace rehome',
@@ -91,9 +117,79 @@ const WORKSPACE_EDITS = [
   ],
 ]
 
+/** The pristine `deriveGroups` call tail (before any seam). */
+const DERIVE_GROUPS_CALL_PRISTINE = 'sessionOrderByAccount[""] }\n\t\t\t}), ['
+/** The broken form an earlier seam version produced (stray useMemo argument). */
+const DERIVE_GROUPS_CALL_BROKEN = 'sessionOrderByAccount[""] }\n\t\t\t}), worktreeWorkspaceOf, ['
+/** The correct form: the mapping is the 5th argument of `deriveGroups(...)`. */
+const DERIVE_GROUPS_CALL_FIXED = 'sessionOrderByAccount[""] }\n\t\t\t}, worktreeWorkspaceOf), ['
+
 /** Apply the ui-workspace seam to one bundle source (idempotent per edit). */
 export function applyWorkspaceSeam(code) {
-  return applyEdits(code, WORKSPACE_EDITS)
+  const missing = []
+  let out = code
+  for (const [label, from, to] of WORKSPACE_SIMPLE_EDITS) {
+    if (out.includes(to)) continue
+    const count = out.split(from).length - 1
+    if (count !== 1) {
+      missing.push(`${label} (found ${count}, expected 1)`)
+      continue
+    }
+    out = out.replace(from, to)
+  }
+  // The deriveGroups call needs three-way handling: already fixed, broken
+  // (stray useMemo argument from a previous seam version), or pristine.
+  if (out.includes(DERIVE_GROUPS_CALL_FIXED)) {
+    // already correct
+  } else if (out.includes(DERIVE_GROUPS_CALL_BROKEN)) {
+    out = out.replace(DERIVE_GROUPS_CALL_BROKEN, DERIVE_GROUPS_CALL_FIXED)
+  } else if (out.includes(DERIVE_GROUPS_CALL_PRISTINE)) {
+    out = out.replace(DERIVE_GROUPS_CALL_PRISTINE, DERIVE_GROUPS_CALL_FIXED)
+  } else {
+    missing.push('deriveGroups call (pristine/broken/fixed anchor not found)')
+  }
+  if (missing.length > 0) return { status: 'mismatch', missing }
+  return out === code ? { status: 'already', missing: [] } : { status: 'applied', code: out, missing: [] }
+}
+
+/**
+ * Execute a served bundle through a stubbed `window.__ModuleLoader__` and
+ * assert its factory registers without throwing. Catches the class of bug
+ * where a bundle parses (and even `node --check`s) but crashes at load or
+ * during factory evaluation — e.g. the broken workspace seam version, whose
+ * patched bundle was syntactically fine yet failed to register.
+ * @param code - bundle source.
+ * @param expectedId - the module id the bundle must register under.
+ * @returns `{ ok: true }` or `{ ok: false, error }`.
+ */
+export function bundleExecutes(code, expectedId) {
+  let loaded = null
+  const sandbox = {
+    window: { __ModuleLoader__: { load: (payload) => { loaded = payload } } },
+    console,
+  }
+  try {
+    createContext(sandbox)
+    runInContext(code, sandbox, { filename: 'client.js' })
+  } catch (error) {
+    return { ok: false, error: `load threw: ${error.message}` }
+  }
+  if (loaded === null || loaded.id !== expectedId) {
+    return { ok: false, error: `did not register as ${expectedId}` }
+  }
+  // Require stub: every module answers any property with a constructable
+  // function, so top-level destructuring, calls, and `class extends` cannot
+  // throw. Uses a regular function (arrow functions are not constructable).
+  const stubModule = new Proxy(function () {}, { get: () => function () {} })
+  try {
+    const moduleExports = loaded.factory(() => stubModule)
+    if (typeof moduleExports.apply !== 'function') {
+      return { ok: false, error: 'factory exports.apply is not a function' }
+    }
+  } catch (error) {
+    return { ok: false, error: `factory threw: ${error.message}` }
+  }
+  return { ok: true }
 }
 
 function applyEdits(code, edits) {

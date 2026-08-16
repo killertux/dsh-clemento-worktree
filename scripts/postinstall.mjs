@@ -13,7 +13,7 @@ import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { createRequire } from 'node:module'
 import { dirname, join } from 'node:path'
-import { applySeam, applyWorkspaceSeam } from './seam.mjs'
+import { applySeam, applyWorkspaceSeam, bundleExecutes } from './seam.mjs'
 
 const require = createRequire(import.meta.url)
 
@@ -69,6 +69,15 @@ function patch(bundle, apply, label) {
     console.warn(`[dsh-clemento-worktree] WARNING: could not apply the ${label} worktree seam (bundle layout differs):`)
     for (const anchor of result.missing) console.warn('  - ' + anchor)
     console.warn('  The workspace chip / sidebar grouping will not reflect worktree sessions until the seam ships upstream.')
+    return
+  }
+  // Never land a patched bundle that cannot even register: verify the patched
+  // source executes through a stubbed module loader before writing it.
+  const expectedId = label === 'ui-conversation' ? '@deepseek-ai/dsh-client-ui-conversation' : '@deepseek-ai/dsh-client-ui-workspace'
+  const check = bundleExecutes(result.code, expectedId)
+  if (!check.ok) {
+    console.warn(`[dsh-clemento-worktree] WARNING: the ${label} seam produced a bundle that fails to load (${check.error}) — NOT writing it.`)
+    console.warn('  Run node scripts/restore-workspace-seam.mjs <pkg-dir> if a previous bad patch is installed, then reinstall.')
     return
   }
   writeFileSync(bundle, result.code)
