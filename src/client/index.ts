@@ -16,9 +16,9 @@ import type { WorktreeView } from '@killertux/dsh-clemento-worktree/types'
 import type { WorktreeInjected } from './contract/slots.ts'
 import { en, zh } from './locales.ts'
 import { WorktreeBadge } from './WorktreeBadge.tsx'
-import { WorktreeComposerButton } from './WorktreeChooserDialog.tsx'
+import { WorktreeDropdown } from './WorktreeDropdown.tsx'
 
-export type { WorktreeInjected, WorktreeOverlayActionProps, WorktreeBadgeProps } from './contract/slots.ts'
+export type { WorktreeInjected, WorktreeHeroActionProps, WorktreeBadgeProps } from './contract/slots.ts'
 
 const NS = 'worktree'
 
@@ -131,9 +131,8 @@ export async function apply(ctx: ClientContext): Promise<() => Promise<void>> {
     },
   })
 
-  // The badge stays in the session header; the trigger floats in the shell
-  // overlay layer (root scope), so it is reachable on the blank new-session
-  // page without an open session.
+  // The badge stays in the session header; the worktree dropdown renders in
+  // the start-page hero row (conversation.hero.actions, added by the seam).
   ctx.slots.inject('conversation.session.header.actions', () => ctx.slots.register(
     {
       name: 'conversation.session.header.actions',
@@ -144,15 +143,15 @@ export async function apply(ctx: ClientContext): Promise<() => Promise<void>> {
     },
     WorktreeBadge,
   ))
-  ctx.slots.inject('shell.overlay', () => ctx.slots.register(
+  ctx.slots.inject('conversation.hero.actions', () => ctx.slots.register(
     {
-      name: 'shell.overlay',
-      id: 'worktree-new-session',
+      name: 'conversation.hero.actions',
+      id: 'worktree-dropdown',
       order: 0,
       inject: injected,
       locale: NS,
     },
-    WorktreeComposerButton,
+    WorktreeDropdown,
   ))
 
   return async () => {

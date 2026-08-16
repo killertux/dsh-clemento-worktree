@@ -8,9 +8,9 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
 import type { SessionId, WorkspaceId, WorkspaceListState, WorkspaceView } from '@deepseek-ai/dsh-client-runtime/client'
 import type { SnapshotSelectorHook } from '@deepseek-ai/dsh-client-ui-slots'
 import type { WorktreeView } from '@killertux/dsh-clemento-worktree/types'
-import type { WorktreeOverlayActionProps } from '../src/client/contract/slots.ts'
+import type { WorktreeHeroActionProps } from '../src/client/contract/slots.ts'
 import { WorktreeBadge } from '../src/client/WorktreeBadge.tsx'
-import { WorktreeComposerButton } from '../src/client/WorktreeChooserDialog.tsx'
+import { WorktreeDropdown } from '../src/client/WorktreeDropdown.tsx'
 import { en, zh } from '../src/client/locales.ts'
 
 afterEach(cleanup)
@@ -18,7 +18,7 @@ afterEach(cleanup)
 const SID = 's1' as SessionId
 const WID = 'w1' as WorkspaceId
 
-const t: WorktreeOverlayActionProps['t'] =
+const t: WorktreeHeroActionProps['t'] =
   (key, params) => (zh[key as keyof typeof zh] ?? key).replace('{{message}}', String(params?.message ?? ''))
 
 /** Wrap a constant snapshot as the selector hook the renderer binds. */
@@ -134,7 +134,7 @@ describe('WorktreeBadge', () => {
   })
 })
 
-describe('WorktreeComposerButton chooser', () => {
+describe('WorktreeDropdown hero selector', () => {
   it('lists the workspace worktrees and applies the chosen one', async () => {
     const main = worktree('wt-main', 'main', '/tmp/repo', true)
     const linked = worktree('wt-linked', 'feature/foo', '/tmp/repo-feature-foo')
@@ -145,7 +145,7 @@ describe('WorktreeComposerButton chooser', () => {
     })
     const selectWorktree = vi.fn(async () => {})
     render(
-      <WorktreeComposerButton
+      <WorktreeDropdown
         {...footerKit}
         t={t}
         useSessions={hook(blankSessions())}
@@ -158,10 +158,27 @@ describe('WorktreeComposerButton chooser', () => {
       />,
     )
     fireEvent.click(screen.getByText(zh['button.selectWorktree']))
-    expect(screen.getByRole('dialog')).toBeTruthy()
     expect(await screen.findByText('feature/foo')).toBeTruthy()
     fireEvent.click(screen.getByText('feature/foo'))
     await waitFor(() => expect(selectWorktree).toHaveBeenCalledWith('/tmp/repo-feature-foo'))
+  })
+
+  it('shows the selected worktree name on the chip', async () => {
+    const linked = worktree('wt-linked', 'feature/foo', '/tmp/repo-feature-foo')
+    render(
+      <WorktreeDropdown
+        {...footerKit}
+        t={t}
+        useSessions={hook(blankSessions('/tmp/repo-feature-foo'))}
+        useWorkspaces={hook(workspaceList([workspace(WID, 'repo')]))}
+        useWorktrees={hook([linked])}
+        worktreeOf={vi.fn(async () => null)}
+        listWorktrees={vi.fn(async () => [linked])}
+        createWorktree={vi.fn(async () => { throw new Error('unused') })}
+        selectWorktree={vi.fn(async () => {})}
+      />,
+    )
+    expect(screen.getByText('feature/foo')).toBeTruthy()
   })
 
   it('creates a worktree on a new branch and applies it', async () => {
@@ -170,7 +187,7 @@ describe('WorktreeComposerButton chooser', () => {
     const createWorktree = vi.fn(async () => created)
     const selectWorktree = vi.fn(async () => {})
     render(
-      <WorktreeComposerButton
+      <WorktreeDropdown
         {...footerKit}
         t={t}
         useSessions={hook(blankSessions())}
@@ -192,12 +209,12 @@ describe('WorktreeComposerButton chooser', () => {
     await waitFor(() => expect(selectWorktree).toHaveBeenCalledWith('/tmp/repo-feature-new'))
   })
 
-  it('surfaces a create failure instead of closing', async () => {
+  it('surfaces a create failure without closing', async () => {
     const listWorktrees = vi.fn(async () => [])
     const createWorktree = vi.fn(async () => { throw new Error('branch exists') })
     const selectWorktree = vi.fn(async () => {})
     render(
-      <WorktreeComposerButton
+      <WorktreeDropdown
         {...footerKit}
         t={t}
         useSessions={hook(blankSessions())}
@@ -219,28 +236,10 @@ describe('WorktreeComposerButton chooser', () => {
     expect(selectWorktree).not.toHaveBeenCalled()
   })
 
-  it('hides the trigger once the current session has started', () => {
-    const started = blankSessions('/tmp/repo', false)
-    const { queryByText } = render(
-      <WorktreeComposerButton
-        {...footerKit}
-        t={t}
-        useSessions={hook(started)}
-        useWorkspaces={hook(workspaceList([workspace(WID, 'repo')]))}
-        useWorktrees={hook([])}
-        worktreeOf={vi.fn(async () => null)}
-        listWorktrees={vi.fn(async () => [])}
-        createWorktree={vi.fn(async () => { throw new Error('unused') })}
-        selectWorktree={vi.fn(async () => {})}
-      />,
-    )
-    expect(queryByText(zh['button.selectWorktree'])).toBeNull()
-  })
-
   it('prompts to choose a workspace first when none is selected', async () => {
     const noSession = { ids: [], byId: {}, current: undefined, phase: 'ready' }
     render(
-      <WorktreeComposerButton
+      <WorktreeDropdown
         {...footerKit}
         t={t}
         useSessions={hook(noSession as never)}

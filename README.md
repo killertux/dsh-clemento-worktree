@@ -60,6 +60,68 @@ build/               # vendored client-bundle helper for tsdown
 plan.md              # the design record
 ```
 
+## Workspace selector + worktree dropdown (applied automatically)
+
+The plugin's `prepare` script applies the ui-conversation seam at install
+time (`scripts/postinstall.mjs` → `scripts/seam.mjs`): it resolves the
+installed `@deepseek-ai/dsh-client-ui-conversation` bundle and adds
+
+- the `worktreeWorkspaceOf` mapping to the workspace chip's resolution, so a
+  session running in a linked git worktree keeps its workspace selected;
+- a `conversation.hero.actions` root-scoped slot in the start-page hero row,
+  where the plugin renders its worktree dropdown right of the workspace
+  selector.
+
+pnpm blocks install scripts unless allowed, so allow the plugin's once:
+
+```yaml
+# /home/bruno/.dsh/profiles/web/pnpm-workspace.yaml
+allowBuilds:
+  '@killertux/dsh-clemento-worktree': true
+```
+
+Then update the plugin and restart the web UI:
+
+```sh
+npx @deepseek-ai/dsh plugin --profile web remove @killertux/dsh-clemento-worktree
+npx @deepseek-ai/dsh plugin --profile web add github:killertux/dsh-clemento-worktree
+```
+
+The postinstall is idempotent and never fails the install: if the bundle
+layout differs (a dsh version bump), it logs a warning and the plugin still
+works — the chip just falls back to "Choose workspace" until the seam ships
+upstream. `scripts/patch-conversation-seam.mjs` is the manual entry point,
+and `patches/dsh-client-ui-conversation.patch` is the pristine→patched diff
+for the `patchedDependencies` alternative.
+
+## Known behavior
+
+- Sessions created in a linked worktree have a `cwd` different from their workspace path, so the core sidebar shows them under **Ungrouped**; the badge identifies the worktree. The main worktree (cwd == workspace path) behaves exactly as today.
+- `worktree.create` supports a new branch at the default sibling path only.
+- Deleting a worktree always runs `git worktree remove --force`.
+
+## Development
+
+```sh
+pnpm install        # installs deps; node-pty native build is allowed via pnpm-workspace.yaml
+pnpm run build      # tsc (host + client) + tsdown client bundle → lib/
+pnpm test           # 34 tests: git seam, registry unit, real-Loader composition over real git, UI components
+```
+
+The registry unit tests use an in-memory storage backend (`tests/helpers/memory-backend.ts`); the composition test boots a real Loader tree (`cordis.yml`) with the published `@deepseek-ai` packages against a real temporary git repository.
+
+## Layout
+
+```
+package.json         # @killertux/dsh-clemento-worktree: dsh.bundle + dsh.client manifests
+cordis.patch.yml     # the bundle layer (one entry)
+src/                 # source (git seam, worktree registry, client)
+lib/                 # committed build output (host ESM, typert artifacts, client.js)
+tests/               # 34 tests
+build/               # vendored client-bundle helper for tsdown
+plan.md              # the design record
+```
+
 ## Workspace selector keeps the workspace for worktree sessions
 
 A session running in a linked git worktree has a `cwd` different from its

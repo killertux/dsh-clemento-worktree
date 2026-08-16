@@ -1,5 +1,5 @@
 import type { ClientContext } from '@deepseek-ai/dsh-client-runtime/client';
-export type { WorktreeInjected, WorktreeOverlayActionProps, WorktreeBadgeProps } from './contract/slots.ts';
+export type { WorktreeInjected, WorktreeHeroActionProps, WorktreeBadgeProps } from './contract/slots.ts';
 /** Required services (cordis fiber inject). */
 export declare const inject: string[];
 /**

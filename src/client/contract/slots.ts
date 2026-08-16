@@ -18,8 +18,16 @@ import type { WorktreeView } from '@killertux/dsh-clemento-worktree/types'
 
 declare module '@deepseek-ai/dsh-client-ui-slots' {
   interface LocaleNamespaceMap {
-    /** The worktree badge and new-session-in-worktree flow copy. */
+    /** The worktree badge and selector flow copy. */
     worktree: WorktreeKey
+  }
+  interface SlotMap {
+    /**
+     * Start-page hero actions seat beside the workspace selector. Declared by
+     * the ui-conversation worktree seam (applied at install; upstream in the
+     * dev clone); the plugin registers its worktree dropdown here.
+     */
+    'conversation.hero.actions': { kind: 'list'; scope: 'root' }
   }
 }
 
@@ -48,9 +56,9 @@ export type WorktreeInjected = {
   selectWorktree(worktreePath: string): Promise<void>
 }
 
-/** Props of the floating worktree-setup trigger + its chooser dialog. */
-export type WorktreeOverlayActionProps =
-  PropsRuntime<'shell.overlay'>
+/** Props of the start-page worktree dropdown + its menu. */
+export type WorktreeHeroActionProps =
+  PropsRuntime<'conversation.hero.actions'>
   & {
     /** Bound worktree-list selector hook (renderer binds the inject hooks compartment). */
     useWorktrees: SnapshotSelectorHook<WorktreeView[] | undefined>

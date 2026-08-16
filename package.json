@@ -52,7 +52,8 @@
     "build:lib": "tsc -b tsconfig.json && tsc -b tsconfig.client.json",
     "build:bundle": "tsdown --env.DSH_BUILD_FACE client",
     "typecheck": "npm run build:lib",
-    "test": "vitest run"
+    "test": "vitest run",
+    "prepare": "node scripts/postinstall.mjs"
   },
   "keywords": [
     "dsh",

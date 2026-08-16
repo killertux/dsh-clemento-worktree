@@ -1,7 +1,7 @@
-diff --git a/client.js b/client.js
-index 86e7906..c55a3ad 100644
---- a/client.js
-+++ b/client.js
+diff --git a/lib/client.js b/lib/client.js
+index 86e7906..d5fb86c 100644
+--- a/lib/client.js
++++ b/lib/client.js
 @@ -6783,7 +6783,7 @@ window.__ModuleLoader__.load({
  		};
  		//#endregion
@@ -20,7 +20,23 @@ index 86e7906..c55a3ad 100644
  			const pendingWorkspace = workspaces.items.find((workspace) => workspace.workspaceId === pendingWorkspaceId);
  			(0, react.useEffect)(() => {
  				if (pendingWorkspaceId === void 0) return;
-@@ -9563,6 +9563,7 @@ window.__ModuleLoader__.load({
+@@ -6852,6 +6852,7 @@ window.__ModuleLoader__.load({
+ 							setPickerOpen(false);
+ 						}
+ 					}),
++					renderSlot("conversation.hero.actions", {}),
+ 					renderSlot("conversation.hero.agentPreset", {})
+ 				]
+ 			});
+@@ -9559,10 +9560,15 @@ window.__ModuleLoader__.load({
+ 					"conversation.hero.agentPreset": {
+ 						kind: "single",
+ 						scope: "root"
++					},
++					"conversation.hero.actions": {
++						kind: "list",
++						scope: "root"
+ 					}
  				},
  				inject: (sessionId) => ({
  					hooks: { composerBlock: sessionId === void 0 ? ABSENT_BLOCK : composerBlocks.storeFor(sessionId) },
