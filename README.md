@@ -59,3 +59,20 @@ tests/               # 34 tests
 build/               # vendored client-bundle helper for tsdown
 plan.md              # the design record
 ```
+
+## Workspace selector keeps the workspace for worktree sessions
+
+A session running in a linked git worktree has a `cwd` different from its
+workspace path, so the workspace chip (which matches the workspace session
+account) would fall back to "Choose workspace". The plugin provides a
+`ctx.worktreeWorkspace` session→workspace mapping service, and a small
+additive seam in `ui-conversation` makes the chip consult it. The seam is
+upstream-ready in the dev clone; until it ships in a dsh release, apply it to
+the installed bundle once per dsh update:
+
+```sh
+cd /home/bruno/.dsh/profiles/web
+pnpm patch @deepseek-ai/dsh-client-ui-conversation@0.1.0-rc.6   # prints a patch dir
+node <repo>/scripts/patch-conversation-seam.mjs <patch-dir>
+pnpm patch-commit <patch-dir>
+```

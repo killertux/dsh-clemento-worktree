@@ -46,6 +46,11 @@ export async function apply(ctx: ClientContext): Promise<() => Promise<void>> {
 
   // Browser-local mirror of the workspace's worktrees, fed by list/create.
   const worktrees = createSnapshotStore<WorktreeView[] | undefined>(undefined)
+  // Session → owning workspace mapping for sessions running in a git
+  // worktree. The ui-conversation seam (worktreeWorkspaceOf) reads this via
+  // the provided `worktreeWorkspace` service, so the workspace chip keeps
+  // showing the workspace for a linked-worktree session.
+  const worktreeBySession = createSnapshotStore<Record<SessionId, WorkspaceId>>({})
 
   const unwrap = <T,>(result: { ok: true; value: T } | { ok: false; error: { message: string } }): T => {
     if (!result.ok) throw new Error(result.error.message)
@@ -58,6 +63,33 @@ export async function apply(ctx: ClientContext): Promise<() => Promise<void>> {
   // plugin's own mount would deadlock on.
   const worktreeRegistry = (): TypertRemoteNamespaceMap['worktreeRegistry'] =>
     ctx.get('remote.worktreeRegistry') as TypertRemoteNamespaceMap['worktreeRegistry']
+
+  /** Resolve and cache the owning workspace of one session running in a worktree. */
+  const rememberWorktreeWorkspace = async (sessionId: SessionId): Promise<void> => {
+    const worktree = unwrap(await worktreeRegistry().bySession({ sessionId })).worktree
+    if (worktree !== null) {
+      worktreeBySession.set({ ...worktreeBySession.getSnapshot(), [sessionId]: worktree.workspaceId })
+    }
+  }
+
+  // Expose the mapping to the ui-conversation seam: the workspace chip
+  // resolves a session's workspace through this service when the cwd account
+  // match fails.
+  ctx.provide('worktreeWorkspace', {
+    workspaceOf: (sessionId: SessionId): WorkspaceId | undefined =>
+      worktreeBySession.getSnapshot()[sessionId],
+  })
+
+  // Keep the mapping fresh for the current session: resolve on boot and
+  // whenever the current session changes.
+  const sessionsList = sessions.list
+  void rememberWorktreeWorkspace(sessionsList.getSnapshot().current as SessionId)
+  ctx.effect(() => sessionsList.subscribe(() => {
+    const current = sessionsList.getSnapshot().current
+    if (current !== undefined && worktreeBySession.getSnapshot()[current] === undefined) {
+      void rememberWorktreeWorkspace(current)
+    }
+  }), 'ui-worktree: current-session workspace sync')
 
   const injected = (): WorktreeInjected => ({
     hooks: { worktrees },
@@ -74,6 +106,7 @@ export async function apply(ctx: ClientContext): Promise<() => Promise<void>> {
       return created
     },
     selectWorktree: async worktreePath => {
+      const chosen = (worktrees.getSnapshot() ?? []).find(worktree => worktree.path === worktreePath)
       // Reuse an existing blank session in this worktree (the connectWorkspace
       // reuse scan), else create one through the runtime's own create path —
       // the same manager the workspace flow uses, which lands the id in the
@@ -82,12 +115,18 @@ export async function apply(ctx: ClientContext): Promise<() => Promise<void>> {
       for (const id of list.ids) {
         const summary = list.byId[id]
         if (summary !== undefined && summary.blank && summary.cwd === worktreePath) {
-          sessions.open(summary.id)
+          if (chosen !== undefined) {
+            worktreeBySession.set({ ...worktreeBySession.getSnapshot(), [id]: chosen.workspaceId })
+          }
+          sessions.open(id)
           return
         }
       }
       const sessionRuntime = ctx.get('sessions') as unknown as SessionRuntime
       const sessionId = await sessionRuntime.create({ cwd: worktreePath })
+      if (chosen !== undefined) {
+        worktreeBySession.set({ ...worktreeBySession.getSnapshot(), [sessionId]: chosen.workspaceId })
+      }
       sessions.open(sessionId)
     },
   })
