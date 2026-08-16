@@ -29,6 +29,10 @@ if (!existsSync(file)) {
 }
 
 const code = readFileSync(file, 'utf8')
+if (code.includes('worktreeWorkspaceOf')) {
+  console.log('seam already applied — nothing to do (re-run only needed after a dsh version bump)')
+  process.exit(0)
+}
 let out = code
 let applied = 0
 
