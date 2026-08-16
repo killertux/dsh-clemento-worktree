@@ -10,7 +10,7 @@ import type { HostObservable, PropsLocale, PropsRuntime, SnapshotSelectorHook } 
 // into every program that sees this contract, so PropsRuntime resolves.
 import type {} from '@deepseek-ai/dsh-client-ui-conversation/client'
 import type { WorktreeKey } from '../locales.ts'
-import type { WorktreeView } from '@killertux/dsk-clemento-worktree/types'
+import type { WorktreeView } from '@killertux/dsh-clemento-worktree/types'
 
 declare module '@deepseek-ai/dsh-client-ui-slots' {
   interface LocaleNamespaceMap {

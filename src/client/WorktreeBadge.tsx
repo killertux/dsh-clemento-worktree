@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import type { WorktreeView } from '@killertux/dsk-clemento-worktree/types'
+import type { WorktreeView } from '@killertux/dsh-clemento-worktree/types'
 import type { WorktreeBadgeProps } from './contract/slots.ts'
 import css from './WorktreeBadge.module.css'
 

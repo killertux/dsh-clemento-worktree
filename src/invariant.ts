@@ -1,6 +1,6 @@
 /**
- * Package-owned invariant companion for `@killertux/dsk-clemento-worktree`.
- * @module @killertux/dsk-clemento-worktree/invariant
+ * Package-owned invariant companion for `@killertux/dsh-clemento-worktree`.
+ * @module @killertux/dsh-clemento-worktree/invariant
  */
 
 /* jscpd:ignore-start */
@@ -9,7 +9,7 @@ import type { InvariantInstaller } from '@deepseek-ai/dsh-invariants'
 import type { DomainChanged } from '@deepseek-ai/dsh-storage-domain'
 import { WorktreeId } from './worktree/index.ts'
 
-const PACKAGE_NAME = '@killertux/dsk-clemento-worktree'
+const PACKAGE_NAME = '@killertux/dsh-clemento-worktree'
 
 /** Cordis companion plugin name. */
 export const name = 'worktree-invariant'

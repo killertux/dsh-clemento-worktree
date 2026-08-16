@@ -1,6 +1,6 @@
 /**
- * Package-owned invariant companion for `@killertux/dsk-clemento-worktree`.
- * @module @killertux/dsk-clemento-worktree/invariant
+ * Package-owned invariant companion for `@killertux/dsh-clemento-worktree`.
+ * @module @killertux/dsh-clemento-worktree/invariant
  */
 import type { Context } from '@deepseek-ai/cordis';
 /** Cordis companion plugin name. */

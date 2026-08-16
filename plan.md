@@ -1,6 +1,6 @@
 # Plan: Git Worktree Subdivision for DeepSeek Harness
 
-Status: **implemented — standalone plugin repo, installable via `dsh plugin --profile web add github:killertux/dsk-clemento-worktree`**
+Status: **implemented — standalone plugin repo, installable via `dsh plugin --profile web add github:killertux/dsh-clemento-worktree`**
 
 ## Direction (final, per user decisions)
 
@@ -30,7 +30,7 @@ folder (the harness source lives in a sibling dev clone,
 
 ## Package layout (this repo)
 
-- `package.json` — `@killertux/dsk-clemento-worktree`; `dsh.bundle.patch` →
+- `package.json` — `@killertux/dsh-clemento-worktree`; `dsh.bundle.patch` →
   `./cordis.patch.yml`; `dsh.client` manifest; exports `.` (host entry),
   `./types`, `./typert`, `./remote`, `./client`; `files: [lib, cordis.patch.yml, README.md]`.
 - `cordis.patch.yml` — one row `id: worktree` → the package root, a function
@@ -76,7 +76,7 @@ The typert artifacts are generated in the harness dev tree
 with the package-name rename; the standalone generator is not used because it
 only registers packages under a `packages/` layout. Regenerate by editing the
 mirror packages in the dev clone, running its host tsdown, and re-porting
-`lib/typert.*` with `s/@deepseek-ai\/dsh-worktree/@killertux\/dsk-clemento-worktree/g`.
+`lib/typert.*` with `s/@deepseek-ai\/dsh-worktree/@killertux\/dsh-clemento-worktree/g`.
 
 ## Verification
 
@@ -86,8 +86,8 @@ mirror packages in the dev clone, running its host tsdown, and re-porting
       auto-reconciles it into `dsh.profile.bundles`;
       `dsh --profile scratch --dump-config` composes the `worktree` row.
 - [x] Host/client `tsc` clean; tsdown client bundle builds.
-- [ ] Push to `github:killertux/dsk-clemento-worktree` and run
-      `dsh plugin --profile web add github:killertux/dsk-clemento-worktree`,
+- [ ] Push to `github:killertux/dsh-clemento-worktree` and run
+      `dsh plugin --profile web add github:killertux/dsh-clemento-worktree`,
       then a browser smoke (badge + chooser) on a real multi-worktree repo.
 
 ## Known behavior / limitations

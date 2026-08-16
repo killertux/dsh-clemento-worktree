@@ -7,7 +7,7 @@ import type { SessionId, WorkspaceId } from '@deepseek-ai/dsh-client-runtime/cli
 import type { WorkspaceListState } from '@deepseek-ai/dsh-client-runtime/client';
 import type { HostObservable, PropsLocale, PropsRuntime, SnapshotSelectorHook } from '@deepseek-ai/dsh-client-ui-slots';
 import type { WorktreeKey } from '../locales.ts';
-import type { WorktreeView } from '@killertux/dsk-clemento-worktree/types';
+import type { WorktreeView } from '@killertux/dsh-clemento-worktree/types';
 declare module '@deepseek-ai/dsh-client-ui-slots' {
     interface LocaleNamespaceMap {
         /** The worktree badge and new-session-in-worktree flow copy. */

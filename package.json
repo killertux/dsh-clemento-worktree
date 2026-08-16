@@ -1,7 +1,7 @@
 {
-  "name": "@killertux/dsk-clemento-worktree",
+  "name": "@killertux/dsh-clemento-worktree",
   "version": "0.1.0",
-  "description": "Git worktree subdivision for DeepSeek Harness: a per-worktree session badge and a new-session-in-worktree flow. Install with: dsh plugin --profile web add github:killertux/dsk-clemento-worktree",
+  "description": "Git worktree subdivision for DeepSeek Harness: a per-worktree session badge and a new-session-in-worktree flow. Install with: dsh plugin --profile web add github:killertux/dsh-clemento-worktree",
   "type": "module",
   "main": "lib/types/index.js",
   "types": "lib/types/index.d.ts",
@@ -65,7 +65,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/killertux/dsk-clemento-worktree.git"
+    "url": "git+https://github.com/killertux/dsh-clemento-worktree.git"
   },
   "engines": {
     "node": ">=22.19"

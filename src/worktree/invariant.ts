@@ -8,7 +8,7 @@ import type { InvariantInstaller } from '@deepseek-ai/dsh-invariants'
 import type { DomainChanged } from '@deepseek-ai/dsh-storage-domain'
 import { WorktreeId } from './index.ts'
 
-const PACKAGE_NAME = '@killertux/dsk-clemento-worktree'
+const PACKAGE_NAME = '@killertux/dsh-clemento-worktree'
 
 /** Cordis companion plugin name. */
 export const name = 'worktree-invariant'

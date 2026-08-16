@@ -6,4 +6,4 @@
 # (the worktree badge + new-session-in-worktree flow).
 - insert:
     - id: worktree
-      name: '@killertux/dsk-clemento-worktree'
+      name: '@killertux/dsh-clemento-worktree'

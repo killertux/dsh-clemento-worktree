@@ -65,7 +65,7 @@ suite('worktree real Loader composition through cordis.yml', () => {
       `    root: ${JSON.stringify(join(root, 'sessions'))}`,
       "- name: '@deepseek-ai/dsh-workspace'",
       "- name: '@deepseek-ai/dsh-subprocess-local'",
-      "- name: '@killertux/dsk-clemento-worktree'",
+      "- name: '@killertux/dsh-clemento-worktree'",
       '',
     ].join('\n'))
 
@@ -81,7 +81,7 @@ suite('worktree real Loader composition through cordis.yml', () => {
       ['@deepseek-ai/dsh-session-persistence-jsonl', SessionPersistenceJsonl],
       ['@deepseek-ai/dsh-workspace', WorkspaceRegistry],
       ['@deepseek-ai/dsh-subprocess-local', LocalSubprocessRuntime],
-      ['@killertux/dsk-clemento-worktree', WorktreePlugin],
+      ['@killertux/dsh-clemento-worktree', WorktreePlugin],
     ])
     context.loader.internal = {
       version: 'v2',

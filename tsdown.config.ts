@@ -10,5 +10,5 @@ import { clientConfig } from './build/tsdown.client.ts'
 export default (inlineConfig: { env?: Record<string, string | undefined> }): UserConfig[] => {
   const face = inlineConfig.env?.DSH_BUILD_FACE
   if (face !== 'client') return [{ entry: '' }]
-  return [clientConfig('@killertux/dsk-clemento-worktree', 'lib/types/client/index.js')]
+  return [clientConfig('@killertux/dsh-clemento-worktree', 'lib/types/client/index.js')]
 }

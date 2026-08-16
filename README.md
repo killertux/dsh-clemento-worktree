@@ -1,4 +1,4 @@
-# dsk-clemento-worktree
+# dsh-clemento-worktree
 
 Git worktree subdivision for [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness): a **per-worktree session badge** and a **new-session-in-worktree flow**. Installs as an external plugin bundle — no core harness changes.
 
@@ -13,13 +13,13 @@ Non-git workspaces are untouched: no worktree records, no badge, sessions behave
 ## Install
 
 ```sh
-dsh plugin --profile web add github:killertux/dsk-clemento-worktree
+dsh plugin --profile web add github:killertux/dsh-clemento-worktree
 ```
 
-That runs `pnpm add github:killertux/dsk-clemento-worktree` in the `web` profile; because this package declares `dsh.bundle`, `dsh plugin` automatically appends it to the profile's bundle layers. Remove with:
+That runs `pnpm add github:killertux/dsh-clemento-worktree` in the `web` profile; because this package declares `dsh.bundle`, `dsh plugin` automatically appends it to the profile's bundle layers. Remove with:
 
 ```sh
-dsh plugin --profile web remove @killertux/dsk-clemento-worktree
+dsh plugin --profile web remove @killertux/dsh-clemento-worktree
 ```
 
 Requires DSH `0.1.0-rc.6` (the published `@deepseek-ai/*` peers). The plugin ships committed built artifacts (`lib/`) — no install-time build.
@@ -51,7 +51,7 @@ The registry unit tests use an in-memory storage backend (`tests/helpers/memory-
 ## Layout
 
 ```
-package.json         # @killertux/dsk-clemento-worktree: dsh.bundle + dsh.client manifests
+package.json         # @killertux/dsh-clemento-worktree: dsh.bundle + dsh.client manifests
 cordis.patch.yml     # the bundle layer (one entry)
 src/                 # source (git seam, worktree registry, client)
 lib/                 # committed build output (host ESM, typert artifacts, client.js)

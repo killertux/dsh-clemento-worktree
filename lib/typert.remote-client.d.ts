@@ -3,7 +3,7 @@ import type {
   RemoteResult,
   TypertRemoteContribution,
 } from '@deepseek-ai/dsh-typert-protocol'
-import type { WorktreeBySessionRequest, WorktreeCreateRequest, WorktreeCreateResult, WorktreeDeleteRequest, WorktreeDeleteResult, WorktreeListRequest, WorktreeListResult, WorktreeResolveRequest, WorktreeResolveResult } from '@killertux/dsk-clemento-worktree/types'
+import type { WorktreeBySessionRequest, WorktreeCreateRequest, WorktreeCreateResult, WorktreeDeleteRequest, WorktreeDeleteResult, WorktreeListRequest, WorktreeListResult, WorktreeResolveRequest, WorktreeResolveResult } from '@killertux/dsh-clemento-worktree/types'
 
 declare module '@deepseek-ai/dsh-typert-protocol' {
   interface TypertRemoteNamespace$776f726b747265655265676973747279 {

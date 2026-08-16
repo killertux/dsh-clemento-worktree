@@ -7,7 +7,7 @@
 import type { Context } from '@deepseek-ai/cordis'
 import type { InvariantInstaller } from '@deepseek-ai/dsh-invariants'
 
-const PACKAGE_NAME = '@killertux/dsk-clemento-worktree'
+const PACKAGE_NAME = '@killertux/dsh-clemento-worktree'
 
 /** Cordis companion plugin name. */
 export const name = 'worktree-git-invariant'

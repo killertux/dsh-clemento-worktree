@@ -35,8 +35,8 @@ export default defineConfig({
     alias: {
       // Self-subpath imports resolve to source for tests; the remote is the
       // committed generated artifact.
-      '@killertux/dsk-clemento-worktree/types': resolve(import.meta.dirname, 'src/worktree/types.ts'),
-      '@killertux/dsk-clemento-worktree/remote': resolve(import.meta.dirname, 'lib/typert.remote-client.js'),
+      '@killertux/dsh-clemento-worktree/types': resolve(import.meta.dirname, 'src/worktree/types.ts'),
+      '@killertux/dsh-clemento-worktree/remote': resolve(import.meta.dirname, 'lib/typert.remote-client.js'),
     },
   },
   test: {
