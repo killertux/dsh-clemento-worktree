@@ -51,6 +51,13 @@ export async function apply(ctx: ClientContext): Promise<() => Promise<void>> {
   // the provided `worktreeWorkspace` service, so the workspace chip keeps
   // showing the workspace for a linked-worktree session.
   const worktreeBySession = createSnapshotStore<Record<SessionId, WorkspaceId>>({})
+  // Session ids we have already asked the registry about — mapped or not.
+  // mapBySessions only returns entries for sessions IN a worktree, so without
+  // caching negatives every session-list snapshot change re-queries every
+  // non-worktree session (the request storm).
+  const queriedSessionIds = new Set<SessionId>()
+  // Session → worktree cache for the badge (bySession), negatives included.
+  const worktreeById = new Map<SessionId, WorktreeView | null>()
 
   const unwrap = <T,>(result: { ok: true; value: T } | { ok: false; error: { message: string } }): T => {
     if (!result.ok) throw new Error(result.error.message)
@@ -66,8 +73,9 @@ export async function apply(ctx: ClientContext): Promise<() => Promise<void>> {
 
   /** Resolve and cache the owning workspace of sessions running in a worktree. */
   const rememberWorktreeWorkspaces = async (sessionIds: readonly SessionId[]): Promise<void> => {
-    const pending = sessionIds.filter(id => worktreeBySession.getSnapshot()[id] === undefined)
+    const pending = sessionIds.filter(id => !queriedSessionIds.has(id))
     if (pending.length === 0) return
+    for (const id of pending) queriedSessionIds.add(id)
     const result = unwrap(await worktreeRegistry().mapBySessions({ sessionIds: pending })).mappings
     const next = { ...worktreeBySession.getSnapshot() }
     let changed = false
@@ -88,20 +96,33 @@ export async function apply(ctx: ClientContext): Promise<() => Promise<void>> {
       worktreeBySession.getSnapshot()[sessionId],
   })
 
-  // Keep the mapping fresh for every session: resolve all uncached ids on
-  // boot and whenever the session list changes (one bulk remote call; the
-  // sidebar grouping and the workspace chip both read the cache).
+  // Keep the mapping fresh: resolve every session once on boot, then only
+  // re-sync when the set of session ids actually changes (new/removed
+  // sessions). Snapshot mutations — title edits, running state, message
+  // appends — fire the list subscription constantly but never change the id
+  // set, so they must not trigger a remote call.
   const sessionsList = sessions.list
+  let syncedSessionIds: readonly SessionId[] = []
   const syncWorktreeWorkspaces = (): void => {
-    void rememberWorktreeWorkspaces(sessionsList.getSnapshot().ids)
+    const ids = sessionsList.getSnapshot().ids
+    if (ids.length === syncedSessionIds.length
+      && ids.every((id, index) => id === syncedSessionIds[index])) return
+    syncedSessionIds = ids
+    void rememberWorktreeWorkspaces(ids)
   }
   syncWorktreeWorkspaces()
   ctx.effect(() => sessionsList.subscribe(syncWorktreeWorkspaces), 'ui-worktree: session workspace sync')
 
   const injected = (): WorktreeInjected => ({
     hooks: { worktrees },
-    worktreeOf: async sessionId =>
-      unwrap(await worktreeRegistry().bySession({ sessionId })).worktree,
+    worktreeOf: async sessionId => {
+      // Cache per session — negatives included — so the badge's
+      // `worktreeOf`-dependent effect does not re-query on every render.
+      if (worktreeById.has(sessionId)) return worktreeById.get(sessionId) ?? null
+      const view = unwrap(await worktreeRegistry().bySession({ sessionId })).worktree
+      worktreeById.set(sessionId, view)
+      return view
+    },
     listWorktrees: async workspaceId => {
       const views = unwrap(await worktreeRegistry().list({ workspaceId })).items
       worktrees.set(views)
