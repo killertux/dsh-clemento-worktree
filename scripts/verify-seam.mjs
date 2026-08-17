@@ -60,6 +60,12 @@ console.log(`seam status on ${bundle}: ${result.status}`)
 
 // 1. static markers
 const markers = [
+  ['WorkspaceBrowser signature declares the mapping',
+    'searchResultLimit, useDirectoryFlow, renderSlot, worktreeWorkspaceOf, t }) {'],
+  ['SessionTree destructure declares the mapping',
+    'syncSessionOrderAccount, setSessionOrder, worktreeWorkspaceOf, t }) {'],
+  ['WorkspaceBrowser passes the mapping to SessionTree',
+    'setSessionOrder: actions.setSessionOrder,\n\t\t\t\t\t\t\tworktreeWorkspaceOf,\n\t\t\t\t\t\t\tarchivedSessionIds,'],
   ['groupByWorkspace signature declares the mapping',
     'function groupByWorkspace(list, workspaces, archived, ungroupedOrder, worktreeWorkspaceOf)'],
   ['deriveGroups signature declares the mapping',
@@ -79,6 +85,32 @@ if (patched.includes('}), worktreeWorkspaceOf, [')) {
   fail('stray useMemo argument form still present (}), worktreeWorkspaceOf, [)')
 } else {
   console.log('ok no stray useMemo argument form')
+}
+
+// Structural check: every component whose body references the mapping must
+// destructure it — a signature edit that lands on the wrong component passes
+// the string markers above but throws ReferenceError at render time. Find each
+// `worktreeWorkspaceOf` use and the function whose destructure precedes it.
+{
+  const deriveGroupsUse = patched.indexOf('(0, react.useMemo)(() => deriveGroups(')
+  if (deriveGroupsUse === -1) {
+    fail('structural: deriveGroups useMemo not found')
+  } else {
+    // The useMemo lives in SessionTree; walk back to its definition and read
+    // the destructure between `({` and `}) {`.
+    const def = patched.lastIndexOf('function SessionTree({', deriveGroupsUse)
+    if (def === -1) {
+      fail('structural: SessionTree definition not found before the deriveGroups useMemo')
+    } else {
+      const close = patched.indexOf('}) {', def)
+      const destructure = close === -1 ? '' : patched.slice(def, close)
+      if (destructure.includes('worktreeWorkspaceOf')) {
+        console.log('ok structural: SessionTree (owner of the deriveGroups useMemo) destructures the mapping')
+      } else {
+        fail('structural: the component owning the deriveGroups useMemo does not destructure worktreeWorkspaceOf')
+      }
+    }
+  }
 }
 
 // 2. execute the patched bundle through the stubbed loader

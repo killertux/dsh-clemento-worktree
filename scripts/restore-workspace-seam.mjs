@@ -42,6 +42,10 @@ const edits = [
   ['reverse signature', 'renderSlot, worktreeWorkspaceOf, t }) {', 'renderSlot, t }) {'],
   // reverse the inject factory member
   ['reverse factory', 'worktreeWorkspaceOf: (id) => { const m = ctx.get("worktreeWorkspace"); return m == null ? void 0 : m.workspaceOf(id) },\n\t\t\t\tstartSession: (workspaceId) => {', 'startSession: (workspaceId) => {'],
+  // reverse the SessionTree destructure member
+  ['reverse SessionTree destructure', 'syncSessionOrderAccount, setSessionOrder, worktreeWorkspaceOf, t }) {', 'syncSessionOrderAccount, setSessionOrder, t }) {'],
+  // reverse the WorkspaceBrowser → SessionTree render pass
+  ['reverse SessionTree render pass', 'setSessionOrder: actions.setSessionOrder,\n\t\t\t\t\t\t\tworktreeWorkspaceOf,\n\t\t\t\t\t\t\tarchivedSessionIds,', 'setSessionOrder: actions.setSessionOrder,\n\t\t\t\t\t\t\tarchivedSessionIds,'],
   // reverse the groupByWorkspace signature parameter
   ['reverse groupByWorkspace signature', 'function groupByWorkspace(list, workspaces, archived, ungroupedOrder, worktreeWorkspaceOf) {', 'function groupByWorkspace(list, workspaces, archived, ungroupedOrder) {'],
   // reverse the deriveGroups signature parameter

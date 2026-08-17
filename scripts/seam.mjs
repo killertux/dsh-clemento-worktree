@@ -91,6 +91,16 @@ const WORKSPACE_SIMPLE_EDITS = [
     'const browserInjected = () => ({\n\t\t\t\tworktreeWorkspaceOf: (id) => { const m = ctx.get("worktreeWorkspace"); return m == null ? void 0 : m.workspaceOf(id) },\n\t\t\t\tstartSession: (workspaceId) => {',
   ],
   [
+    'SessionTree destructure',
+    'function SessionTree({ useSessions, startSession, open, forkSession, workspaces, archivedSessionIds, onRenameRequest, onDeleteRequest, onSessionRename, onSessionArchive, insertWorkspaceBefore, insertSessionBefore, orderBy, groupExpansion, setGroupExpanded, sessionOrderByAccount, sessionUpdatedAtByAccount, syncSessionOrderAccount, setSessionOrder, t }) {',
+    'function SessionTree({ useSessions, startSession, open, forkSession, workspaces, archivedSessionIds, onRenameRequest, onDeleteRequest, onSessionRename, onSessionArchive, insertWorkspaceBefore, insertSessionBefore, orderBy, groupExpansion, setGroupExpanded, sessionOrderByAccount, sessionUpdatedAtByAccount, syncSessionOrderAccount, setSessionOrder, worktreeWorkspaceOf, t }) {',
+  ],
+  [
+    'SessionTree render pass',
+    'setSessionOrder: actions.setSessionOrder,\n\t\t\t\t\t\t\tarchivedSessionIds,',
+    'setSessionOrder: actions.setSessionOrder,\n\t\t\t\t\t\t\tworktreeWorkspaceOf,\n\t\t\t\t\t\t\tarchivedSessionIds,',
+  ],
+  [
     'groupByWorkspace signature',
     'function groupByWorkspace(list, workspaces, archived, ungroupedOrder) {',
     'function groupByWorkspace(list, workspaces, archived, ungroupedOrder, worktreeWorkspaceOf) {',
